@@ -47,9 +47,9 @@ fi
 
 echo "========== 4. 安装 Caddy =========="
 if ! command -v caddy &>/dev/null; then
-    yum install -y yum-utils
-    yum-config-manager --add-repo https://copr.fedorainfracloud.org/coprs/g/caddy/caddy/repo/epel-7/group_caddy-caddy-epel-7.repo
-    yum install -y caddy
+    dnf install -y 'dnf-command(copr)'
+    dnf copr enable -y @caddy/caddy epel-8-x86_64
+    dnf install -y caddy
     echo "Caddy 已安装"
 else
     echo "Caddy 已存在，跳过"
