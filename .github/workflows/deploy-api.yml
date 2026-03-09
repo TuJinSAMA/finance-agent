@@ -12,25 +12,46 @@ jobs:
     name: Deploy to Aliyun
     runs-on: ubuntu-latest
     steps:
+      - name: Validate secrets
+        run: |
+          missing=""
+          [ -z "${{ secrets.SERVER_HOST }}" ] && missing="$missing SERVER_HOST"
+          [ -z "${{ secrets.SERVER_USER }}" ] && missing="$missing SERVER_USER"
+          [ -z "${{ secrets.SERVER_SSH_KEY }}" ] && missing="$missing SERVER_SSH_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required secrets:$missing"
+            echo "Go to repo Settings > Secrets and variables > Actions to add them."
+            exit 1
+          fi
+          echo "All secrets are configured."
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          command_timeout: 5m
+          script_stop: true
+          debug: false
           script: |
             set -e
 
+            echo "==> Pulling latest code..."
             cd /opt/finance-agent
             git pull origin main
 
+            echo "==> Syncing dependencies..."
             cd apps/api
             uv sync
 
+            echo "==> Running migrations..."
             ENV=prod uv run alembic upgrade head
 
+            echo "==> Restarting service..."
             sudo systemctl restart finance-agent-api
 
+            echo "==> Health check..."
             sleep 3
-            curl -sf http://127.0.0.1:8000/health || (echo "Health check failed!" && exit 1)
+            curl -sf http://127.0.0.1:8000/health || (echo "::error::Health check failed!" && exit 1)
             echo "Deploy succeeded!"
