@@ -57,10 +57,10 @@ fi
 echo "========== 5. 克隆代码 =========="
 if [ ! -d "${APP_DIR}" ]; then
     git clone "${REPO_URL}" "${APP_DIR}"
-    chown -R ${DEPLOY_USER}:${DEPLOY_USER} "${APP_DIR}"
 else
     echo "代码目录已存在，跳过克隆"
 fi
+chown -R ${DEPLOY_USER}:${DEPLOY_USER} "${APP_DIR}"
 
 echo "========== 6. 安装 Python 依赖 =========="
 cd "${API_DIR}"
