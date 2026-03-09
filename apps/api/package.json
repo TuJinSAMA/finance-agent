@@ -4,6 +4,9 @@
   "scripts": {
     "dev": "uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000",
     "build": "echo 'Python build: no-op'",
-    "lint": "uv run ruff check ."
+    "lint": "uv run ruff check .",
+    "db:migrate": "uv run alembic upgrade head",
+    "db:rollback": "uv run alembic downgrade -1",
+    "db:revision": "uv run alembic revision --autogenerate -m"
   }
 }

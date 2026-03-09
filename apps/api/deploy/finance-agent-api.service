@@ -1,0 +1,19 @@
+[Unit]
+Description=Finance Agent API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/finance-agent/apps/api
+Environment=ENV=prod
+ExecStart=/opt/finance-agent/apps/api/.venv/bin/uvicorn src.main:app --host 127.0.0.1 --port 8000 --workers 1
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=finance-agent-api
+
+[Install]
+WantedBy=multi-user.target
