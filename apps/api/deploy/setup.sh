@@ -35,12 +35,11 @@ SUDOERS
 chmod 440 /etc/sudoers.d/finance-agent
 
 echo "========== 3. 安装 uv =========="
-if ! command -v uv &>/dev/null; then
+if ! test -f /usr/local/bin/uv; then
     curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="/root/.local/bin:$PATH"
     cp /root/.local/bin/uv /usr/local/bin/uv
     cp /root/.local/bin/uvx /usr/local/bin/uvx
-    echo "uv 已安装"
+    echo "uv 已安装到 /usr/local/bin/"
 else
     echo "uv 已存在，跳过"
 fi
@@ -65,7 +64,7 @@ fi
 
 echo "========== 6. 安装 Python 依赖 =========="
 cd "${API_DIR}"
-sudo -u ${DEPLOY_USER} uv sync
+sudo -u ${DEPLOY_USER} /usr/local/bin/uv sync
 
 echo "========== 7. 创建 .env.prod（请手动编辑数据库密码） =========="
 if [ ! -f "${API_DIR}/.env.prod" ]; then
@@ -92,7 +91,7 @@ systemctl restart caddy
 
 echo "========== 10. 运行数据库迁移并启动服务 =========="
 cd "${API_DIR}"
-sudo -u ${DEPLOY_USER} ENV=prod uv run alembic upgrade head
+sudo -u ${DEPLOY_USER} ENV=prod /usr/local/bin/uv run alembic upgrade head
 systemctl start finance-agent-api
 
 echo ""
