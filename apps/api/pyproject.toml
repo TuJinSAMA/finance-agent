@@ -12,6 +12,7 @@ dependencies = [
     "asyncpg>=0.30",
     "alembic>=1.15",
     "pydantic-settings>=2.0",
+    "pydantic[email]>=2.12.5",
 ]
 
 [dependency-groups]

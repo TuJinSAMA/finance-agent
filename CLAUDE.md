@@ -62,16 +62,31 @@ cd apps/api && pnpm db:rollback     # Rollback one migration
 cd apps/api && pnpm db:revision -m "description"  # Create new migration
 ```
 
-## Database Architecture
+## API Architecture (Layered)
 
-The API uses PostgreSQL with SQLAlchemy 2.0 and asyncpg:
+The API follows a layered architecture under `apps/api/src/`:
 
-- **Configuration**: `apps/api/src/config.py` - Uses pydantic-settings, reads from `.env` file
-- **Engine/Session**: `apps/api/src/database.py` - Async engine and session factory
-- **Base Models**: `apps/api/src/models.py` - Declarative base with TimestampMixin and UUIDMixin
-- **Migrations**: Alembic configuration in `apps/api/alembic.ini` and `apps/api/alembic/`
+- **`core/`** - Infrastructure: config, database engine/session, exceptions, middleware
+- **`models/`** - SQLAlchemy ORM models (base mixins + per-entity modules)
+- **`schemas/`** - Pydantic request/response schemas (base + per-entity modules)
+- **`services/`** - Business logic layer (one service class per entity)
+- **`routers/`** - API route handlers (thin layer, delegates to services)
+- **`dependencies.py`** - FastAPI dependency injection (DB session, service factories)
+- **`main.py`** - Application entry point, middleware registration, router mounting
 
-Environment variables are loaded from `.env` in the api directory. See `.env.example` for required variables.
+### Database
+
+PostgreSQL with SQLAlchemy 2.0 async + asyncpg. Migrations via Alembic (`apps/api/alembic/`).
+Environment variables loaded from `.env` (dev) or `.env.prod` (prod). See `.env.example`.
+
+### Adding a New Entity
+
+1. Create model in `src/models/new_entity.py`, re-export in `src/models/__init__.py`
+2. Create schemas in `src/schemas/new_entity.py`, re-export in `src/schemas/__init__.py`
+3. Create service in `src/services/new_entity.py`
+4. Add dependency in `src/dependencies.py`
+5. Create router in `src/routers/new_entity.py`, mount in `src/main.py`
+6. Generate migration: `pnpm db:revision -m "add new_entity table"`
 
 ## Code Style & Linting
 
@@ -81,4 +96,4 @@ Environment variables are loaded from `.env` in the api directory. See `.env.exa
 ## Path Aliases
 
 - **Web**: `@/*` maps to `./src/*` (configured in `apps/web/tsconfig.json`)
-- **API**: Use absolute imports from `src/` (e.g., `from src.config import settings`)
+- **API**: Use absolute imports from `src/` (e.g., `from src.core.config import settings`)
