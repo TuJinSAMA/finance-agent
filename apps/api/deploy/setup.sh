@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 #
-# 首次服务器初始化脚本 — 以 root 身份在阿里云服务器上执行一次
+# 首次服务器初始化脚本 — 以 root 身份执行
 # 用法: sudo bash setup.sh
+#
+# 前置条件（需手动完成）:
+#   1. 创建 deploy 用户的 SSH 密钥对，公钥添加到 GitHub Deploy Keys
+#   2. 配置 deploy 用户的 ~/.ssh/config 指定 GitHub 使用的 IdentityFile
+#   3. 将 CI 用的公钥添加到 deploy 用户的 ~/.ssh/authorized_keys
 #
 set -euo pipefail
 
@@ -18,13 +23,7 @@ else
     echo "用户 ${DEPLOY_USER} 已存在，跳过"
 fi
 
-mkdir -p /home/${DEPLOY_USER}/.ssh
-chmod 700 /home/${DEPLOY_USER}/.ssh
-touch /home/${DEPLOY_USER}/.ssh/authorized_keys
-chmod 600 /home/${DEPLOY_USER}/.ssh/authorized_keys
-chown -R ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh
-
-echo "========== 2. 配置 sudoers（仅允许重启服务） =========="
+echo "========== 2. 配置 sudoers（仅允许管理服务） =========="
 cat > /etc/sudoers.d/finance-agent <<'SUDOERS'
 deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart finance-agent-api
 deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop finance-agent-api
@@ -56,7 +55,7 @@ fi
 
 echo "========== 5. 克隆代码 =========="
 if [ ! -d "${APP_DIR}" ]; then
-    git clone "${REPO_URL}" "${APP_DIR}"
+    sudo -u ${DEPLOY_USER} git clone "${REPO_URL}" "${APP_DIR}"
 else
     echo "代码目录已存在，跳过克隆"
 fi
@@ -66,7 +65,7 @@ echo "========== 6. 安装 Python 依赖 =========="
 cd "${API_DIR}"
 sudo -u ${DEPLOY_USER} /usr/local/bin/uv sync
 
-echo "========== 7. 创建 .env.prod（请手动编辑数据库密码） =========="
+echo "========== 7. 创建 .env.prod =========="
 if [ ! -f "${API_DIR}/.env.prod" ]; then
     cat > "${API_DIR}/.env.prod" <<'ENV'
 ENV=prod
@@ -98,15 +97,6 @@ echo ""
 echo "=========================================="
 echo "  初始化完成！"
 echo "=========================================="
-echo ""
-echo "后续操作："
-echo "  1. 编辑 ${API_DIR}/.env.prod 填入正确的数据库密码"
-echo "  2. 将 GitHub Actions 部署密钥添加到 /home/${DEPLOY_USER}/.ssh/authorized_keys"
-echo "  3. 在 GitHub 仓库 Settings > Secrets 中添加："
-echo "     - SERVER_HOST: 服务器 IP"
-echo "     - SERVER_USER: ${DEPLOY_USER}"
-echo "     - SERVER_SSH_KEY: 对应的 SSH 私钥"
-echo "  4. 确保域名 finance.chato-ai.net 已解析到本服务器 IP"
 echo ""
 echo "查看服务状态: systemctl status finance-agent-api"
 echo "查看服务日志: journalctl -u finance-agent-api -f"

@@ -26,9 +26,34 @@ class UserService:
             raise NotFoundException("User", str(user_id))
         return user
 
+    async def get_by_clerk_id(self, clerk_id: str) -> User | None:
+        result = await self.db.execute(
+            select(User).where(User.clerk_id == clerk_id)
+        )
+        return result.scalar_one_or_none()
+
     async def create(self, payload: UserCreate) -> User:
         user = User(**payload.model_dump())
         self.db.add(user)
+        try:
+            await self.db.flush()
+        except IntegrityError:
+            await self.db.rollback()
+            raise AlreadyExistsException("User", "username or email")
+        await self.db.refresh(user)
+        return user
+
+    async def upsert_by_clerk_id(self, payload: UserCreate) -> User:
+        """Create or update a user by clerk_id. Used by webhook handlers."""
+        user = await self.get_by_clerk_id(payload.clerk_id)
+        if user:
+            update_data = payload.model_dump(exclude={"clerk_id"})
+            for field, value in update_data.items():
+                setattr(user, field, value)
+            user.is_active = True
+        else:
+            user = User(**payload.model_dump())
+            self.db.add(user)
         try:
             await self.db.flush()
         except IntegrityError:
@@ -49,6 +74,29 @@ class UserService:
             raise AlreadyExistsException("User", "username or email")
         await self.db.refresh(user)
         return user
+
+    async def update_by_clerk_id(self, clerk_id: str, payload: UserUpdate) -> User:
+        """Update a user by clerk_id. Used by webhook handlers."""
+        user = await self.get_by_clerk_id(clerk_id)
+        if not user:
+            raise NotFoundException("User", clerk_id)
+        update_data = payload.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(user, field, value)
+        try:
+            await self.db.flush()
+        except IntegrityError:
+            await self.db.rollback()
+            raise AlreadyExistsException("User", "username or email")
+        await self.db.refresh(user)
+        return user
+
+    async def soft_delete_by_clerk_id(self, clerk_id: str) -> None:
+        """Mark user as inactive by clerk_id. Used by webhook handlers."""
+        user = await self.get_by_clerk_id(clerk_id)
+        if user:
+            user.is_active = False
+            await self.db.flush()
 
     async def delete(self, user_id: uuid.UUID) -> None:
         user = await self.get_by_id(user_id)

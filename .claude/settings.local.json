@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm lint)",
       "mcp__playwright",
-      "Bash(pnpm add next-intl)"
+      "Bash(pnpm add next-intl)",
+      "Bash(pnpm build)"
     ]
   }
 }

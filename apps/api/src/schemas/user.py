@@ -4,17 +4,28 @@ from src.schemas.base import BaseReadSchema, BaseSchema
 
 
 class UserCreate(BaseSchema):
-    username: str
-    email: EmailStr
+    clerk_id: str
+    email: EmailStr | None = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    avatar_url: str | None = None
 
 
 class UserUpdate(BaseSchema):
-    username: str | None = None
     email: EmailStr | None = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    avatar_url: str | None = None
     is_active: bool | None = None
 
 
 class UserRead(BaseReadSchema):
-    username: str
-    email: str
+    clerk_id: str
+    email: str | None
+    username: str | None
+    first_name: str | None
+    last_name: str | None
+    avatar_url: str | None
     is_active: bool

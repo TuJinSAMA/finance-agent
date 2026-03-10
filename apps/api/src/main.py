@@ -8,7 +8,7 @@ from sqlalchemy import text
 from src.core.config import settings
 from src.core.database import async_session, engine
 from src.core.middleware import RequestLoggingMiddleware
-from src.routers import users
+from src.routers import users, webhooks
 
 logging.basicConfig(
     level=logging.DEBUG if settings.DEBUG else logging.INFO,
@@ -39,6 +39,7 @@ app.add_middleware(
 )
 
 app.include_router(users.router, prefix=settings.API_V1_PREFIX)
+app.include_router(webhooks.router, prefix="/api")
 
 
 @app.get("/health")

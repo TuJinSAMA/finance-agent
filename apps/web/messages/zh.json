@@ -1,0 +1,187 @@
+{
+  "brand": "AlphaDesk",
+  "nav": {
+    "cta": "申请体验",
+    "signIn": "登录",
+    "signUp": "注册"
+  },
+  "hero": {
+    "title": {
+      "line1": "你的下一个投资决策",
+      "line2Before": "不该从",
+      "pdfStack": "一堆PDF",
+      "start": "开始",
+      "line2After": "从",
+      "coffeeTime": "一杯咖啡的时间",
+      "startEnd": "开始"
+    },
+    "subtitle": "AI 多 Agent 投资决策助手",
+    "description": "审阅建议，做出决策，仅此而已。",
+    "ctaPrimary": "立即开始",
+    "scrollHint": "向下滚动"
+  },
+  "problem": {
+    "phase1": {
+      "line1": "每天早上",
+      "line2": "你打开 6 个终端、12 份研报、3 个微信群",
+      "line3": "然后试图在",
+      "highlight": "9:30 之前",
+      "line3End": "想清楚今天该做什么"
+    },
+    "phase2": {
+      "line1": "你知道信息不缺",
+      "line2": "缺的是有人帮你把信息变成",
+      "highlight": "行动"
+    },
+    "phase3": {
+      "prefix": "这就是我们做",
+      "suffix": "的原因"
+    }
+  },
+  "product": {
+    "phases": {
+      "0": {
+        "label": "组合全貌",
+        "title": "30 秒，掌握一切",
+        "description": "打开 AlphaDesk 的第一眼，你就知道组合现在值多少、今天赚了还是亏了、暴露偏向哪边。不用打开 Wind，不用算 Excel。"
+      },
+      "1": {
+        "label": "风控可见",
+        "title": "风险，从不隐藏",
+        "description": "5 个风控指标始终亮着灯。绿色是安全，金色是预警，红色是警报。一切正常时它安静如无物，出问题时你不会是最后一个知道的人。"
+      },
+      "2": {
+        "label": "行动建议",
+        "title": "不止告诉你 What，更解释 Why",
+        "description": "每条建议都附完整的决策链路：哪个事件触发？基本面评分几何？对组合暴露有什么影响？你只需要做一件事——批准，或者驳回。"
+      },
+      "3": {
+        "label": "设计哲学",
+        "title": "为了让你少做，我们的 AI 多做了很多",
+        "description": "7 个 Agent 在后端协同运作——扫描事件、分析基本面、评估技术信号、计算风险、生成建议、安排执行、追踪结果。你看到的，是它们达成共识后的输出。"
+      }
+    },
+    "dashboard": {
+      "title": "仪表盘",
+      "totalAum": "总资产管理规模",
+      "todaysPnL": "今日盈亏",
+      "netExposure": "净敞口",
+      "netLong": "净多头",
+      "positions": "持仓数",
+      "riskStatus": "风控状态",
+      "recommendations": "今日推荐",
+      "total": "条",
+      "pendingReviewCount": "条待审阅",
+      "viewAll": "查看全部分析",
+      "action": "操作",
+      "confidence": "置信度",
+      "status": "状态",
+      "pendingReview": "待审阅",
+      "scheduled": "已计划",
+      "executed": "已执行",
+      "buy": "买入",
+      "sell": "卖出",
+      "rebalance": "调仓",
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "risk": {
+        "liquidityStress": "流动性压力",
+        "varLimit": "VaR 限额",
+        "sectorConcentration": "行业集中度",
+        "volSpikeDetection": "波动率异动",
+        "leverageRatio": "杠杆比率"
+      },
+      "stocks": {
+        "moutai": { "name": "贵州茅台", "sector": "消费品 · 高端白酒" },
+        "longi": { "name": "隆基绿能", "sector": "工业 · 光伏科技" },
+        "catl": { "name": "宁德时代", "sector": "新能源电池 · 行业龙头" }
+      }
+    }
+  },
+  "features": {
+    "cards": {
+      "0": {
+        "title": "每天 8:00，报告已就绪",
+        "description": "隔夜市场概览、持仓影响评估、今日事件日历——自动生成，直接推送到你的企微或钉钉。"
+      },
+      "1": {
+        "title": "建议可解释，决策可追溯",
+        "description": "每条建议都有完整的信号来源、评分逻辑和组合影响预估。三个月后回看，你会知道当初为什么买。"
+      },
+      "2": {
+        "title": "从批准到成交，全程可见",
+        "description": "批准即执行，滑点、成交分布、偏差全部透明。不是黑箱，是你团队中最靠谱的执行搭档。"
+      }
+    }
+  },
+  "workflow": {
+    "timeline": {
+      "0": {
+        "time": "08:00",
+        "title": "晨会报告送达",
+        "content": "手机震了一下。企微里收到了 AlphaDesk 的晨会推送。",
+        "quote": "隔夜纳指跌 1.2%，中概股承压。你的持仓中，LONGi 和 CATL 可能受光伏政策影响。今日有 2 条新建议等待审阅。",
+        "action": "你端起咖啡，打开了笔记本。"
+      },
+      "1": {
+        "time": "08:30",
+        "title": "审阅建议",
+        "content": "Dashboard 上，3 条建议整齐排列。",
+        "quote": "第一条：买入贵州茅台，置信度「高」。你点开决策链路——年报超预期、技术面突破、情绪面积极。组合影响？消费暴露升至 28%，接近阈值但未触发。",
+        "action": "你想了 10 秒，点了「批准」。",
+        "highlight": true
+      },
+      "2": {
+        "time": "09:30",
+        "title": "开盘执行",
+        "content": "开盘铃响。你没有手忙脚乱地下单。",
+        "quote": "进度条在走，成交量在跳，AlphaDesk 在帮你把大单拆成 47 笔小单。",
+        "action": "你去倒了第二杯咖啡。",
+        "climax": true
+      },
+      "3": {
+        "time": "14:55",
+        "title": "盘中事件",
+        "content": "一条推送弹了出来。",
+        "quote": "CATL 发布储能新品，机构预期上调 2025 年出货量。新建议：加仓 CATL，置信度「中」。",
+        "action": "你切到 Dashboard，事件流和建议卡片已经在那里等你了。"
+      },
+      "4": {
+        "time": "16:00",
+        "title": "收盘复盘",
+        "content": "今天的 5 条建议，你批准了 3 条、驳回了 2 条。组合日内 +1.42%。你关上笔记本。",
+        "action": "比以前早了一个小时。",
+        "ending": true
+      }
+    }
+  },
+  "philosophy": {
+    "title": "我们相信的几件事",
+    "beliefs": {
+      "0": {
+        "title": "投资决策应该由人做出。",
+        "content": "AI 擅长处理信息，但不擅长承担责任。AlphaDesk 永远只给建议，不替你下单。批准按钮在你手里，决策权也在你手里。"
+      },
+      "1": {
+        "title": "每一个建议都应该能被追问「为什么」。",
+        "content": "我们不做黑箱。每条建议的触发事件、分析逻辑、组合影响都完整记录。不是因为法规要求，而是因为三个月后你回看时，应该能理解当初的自己。"
+      },
+      "2": {
+        "title": "风控不是限制，是安全感。",
+        "content": "指示灯绿着的时候，你不会注意到它。但正是因为你知道它在那里，你才敢放心做决策。"
+      }
+    },
+    "footer": "由 7 个 AI Agent 协同驱动。为 A 股基金经理设计。"
+  },
+  "cta": {
+    "title": {
+      "line1": "让你的下一个交易日",
+      "line2": "从容一点"
+    },
+    "subtitle": "AlphaDesk V1 目前面向管理 A 股组合的基金经理开放体验申请",
+    "button": "立即开始",
+    "footer": "我们会在 2 个工作日内联系你",
+    "copyright": "© 2026 AlphaDesk · 上海"
+  }
+}

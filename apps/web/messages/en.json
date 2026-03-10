@@ -1,0 +1,187 @@
+{
+  "brand": "AlphaDesk",
+  "nav": {
+    "cta": "Request Access",
+    "signIn": "Sign In",
+    "signUp": "Sign Up"
+  },
+  "hero": {
+    "title": {
+      "line1": "Your Next Investment Decision",
+      "line2Before": "Shouldn't Start With ",
+      "pdfStack": "A Stack of PDFs",
+      "start": "",
+      "line2After": "Start With",
+      "coffeeTime": "A Coffee Break",
+      "startEnd": ""
+    },
+    "subtitle": "AI Multi-Agent Investment Decision Assistant",
+    "description": "Review recommendations, make decisions. That's all.",
+    "ctaPrimary": "Getting Started",
+    "scrollHint": "Scroll Down"
+  },
+  "problem": {
+    "phase1": {
+      "line1": "Every Morning",
+      "line2": "You open 6 terminals, 12 research reports, 3 WeChat groups",
+      "line3": "Then try to figure out what to do before",
+      "highlight": "9:30 AM",
+      "line3End": ""
+    },
+    "phase2": {
+      "line1": "You know information isn't lacking",
+      "line2": "What's missing is someone to turn it into",
+      "highlight": "Action"
+    },
+    "phase3": {
+      "prefix": "That's why we built",
+      "suffix": ""
+    }
+  },
+  "product": {
+    "phases": {
+      "0": {
+        "label": "Portfolio Overview",
+        "title": "Everything in 30 Seconds",
+        "description": "The moment you open AlphaDesk, you know your portfolio value, today's P&L, and exposure bias. No need to open Wind or calculate in Excel."
+      },
+      "1": {
+        "label": "Risk Visibility",
+        "title": "Risk Hides from No One",
+        "description": "5 risk indicators always lit. Green is safe, gold is warning, red is alert. When all is well, it stays quietly in the background. When something's wrong, you won't be the last to know."
+      },
+      "2": {
+        "label": "Actionable Insights",
+        "title": "Not Just What, But Why",
+        "description": "Every recommendation includes a complete decision chain: What triggered it? What's the fundamental score? How does it affect portfolio exposure? You only need to do one thing — approve or reject."
+      },
+      "3": {
+        "label": "Design Philosophy",
+        "title": "We Do More So You Do Less",
+        "description": "7 Agents work together in the backend — scanning events, analyzing fundamentals, evaluating technical signals, calculating risk, generating recommendations, arranging execution, tracking results. What you see is their consensus output."
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "totalAum": "Total AUM",
+      "todaysPnL": "Today's P&L",
+      "netExposure": "Net Exposure",
+      "netLong": "Net Long",
+      "positions": "Positions",
+      "riskStatus": "Risk Status",
+      "recommendations": "Today's Recommendations",
+      "total": "total",
+      "pendingReviewCount": "pending review",
+      "viewAll": "View All Analysis",
+      "action": "Action",
+      "confidence": "Confidence",
+      "status": "Status",
+      "pendingReview": "Pending Review",
+      "scheduled": "Scheduled",
+      "executed": "Executed",
+      "buy": "BUY",
+      "sell": "SELL",
+      "rebalance": "REBALANCE",
+      "high": "HIGH",
+      "medium": "MEDIUM",
+      "low": "LOW",
+      "risk": {
+        "liquidityStress": "Liquidity Stress",
+        "varLimit": "VaR Limit",
+        "sectorConcentration": "Sector Concentration",
+        "volSpikeDetection": "Vol Spike Detection",
+        "leverageRatio": "Leverage Ratio"
+      },
+      "stocks": {
+        "moutai": { "name": "Kweichow Moutai", "sector": "Consumer Staples · Premium Baijiu" },
+        "longi": { "name": "LONGi Green Energy", "sector": "Industrials · Solar Technology" },
+        "catl": { "name": "CATL", "sector": "EV Battery · Market Leader" }
+      }
+    }
+  },
+  "features": {
+    "cards": {
+      "0": {
+        "title": "Reports Ready at 8:00 AM",
+        "description": "Overnight market overview, portfolio impact assessment, today's event calendar — auto-generated and delivered to your WeChat Work or DingTalk."
+      },
+      "1": {
+        "title": "Explainable Recommendations, Traceable Decisions",
+        "description": "Every recommendation has complete signal sources, scoring logic, and portfolio impact estimates. Look back in three months, you'll know why you bought."
+      },
+      "2": {
+        "title": "From Approval to Execution, Fully Visible",
+        "description": "Approval means execution. Slippage, execution distribution, deviations — all transparent. Not a black box, but your team's most reliable execution partner."
+      }
+    }
+  },
+  "workflow": {
+    "timeline": {
+      "0": {
+        "time": "08:00",
+        "title": "Morning Report Delivered",
+        "content": "Your phone buzzed. AlphaDesk's morning briefing arrived in WeChat Work.",
+        "quote": "Nasdaq down 1.2% overnight, Chinese ADRs under pressure. Your holdings: LONGi and CATL may be affected by solar policy. 2 new recommendations waiting for review today.",
+        "action": "You picked up your coffee and opened your laptop."
+      },
+      "1": {
+        "time": "08:30",
+        "title": "Review Recommendations",
+        "content": "On the Dashboard, 3 recommendations neatly arranged.",
+        "quote": "First: Buy Kweichow Moutai, confidence HIGH. You click to see the decision chain — earnings beat expectations, technical breakout, positive sentiment. Portfolio impact? Consumer exposure rises to 28%, approaching but not triggering threshold.",
+        "action": "You thought for 10 seconds and clicked APPROVE.",
+        "highlight": true
+      },
+      "2": {
+        "time": "09:30",
+        "title": "Market Opens & Executes",
+        "content": "The opening bell rings. You're not scrambling to place orders.",
+        "quote": "Progress bars moving, volumes ticking, AlphaDesk is splitting your large orders into 47 smaller ones.",
+        "action": "You went to get your second cup of coffee.",
+        "climax": true
+      },
+      "3": {
+        "time": "14:55",
+        "title": "Intraday Event",
+        "content": "A push notification popped up.",
+        "quote": "CATL announces new energy storage product. Institutional expectations raised for 2025 shipments. New recommendation: Add to CATL, confidence MEDIUM.",
+        "action": "You switch to Dashboard. Event stream and recommendation cards are already waiting."
+      },
+      "4": {
+        "time": "16:00",
+        "title": "Market Close & Review",
+        "content": "Of today's 5 recommendations, you approved 3 and rejected 2. Portfolio up +1.42% today. You close your laptop.",
+        "action": "One hour earlier than before.",
+        "ending": true
+      }
+    }
+  },
+  "philosophy": {
+    "title": "What We Believe",
+    "beliefs": {
+      "0": {
+        "title": "Investment decisions should be made by humans.",
+        "content": "AI excels at processing information, but not at taking responsibility. AlphaDesk always gives recommendations, never executes trades for you. The approve button is in your hands, and so is the decision-making power."
+      },
+      "1": {
+        "title": "Every recommendation should answer 'Why'.",
+        "content": "We don't do black boxes. Every recommendation's triggering event, analysis logic, and portfolio impact is fully recorded. Not because of regulations, but because when you look back in three months, you should understand your past self."
+      },
+      "2": {
+        "title": "Risk control isn't restriction, it's peace of mind.",
+        "content": "When the indicator light is green, you don't notice it. But it's precisely because you know it's there that you dare to make decisions with confidence."
+      }
+    },
+    "footer": "Powered by 7 AI Agents working together. Built for A-share portfolio managers."
+  },
+  "cta": {
+    "title": {
+      "line1": "Make Your Next Trading Day",
+      "line2": "A Little More Relaxed"
+    },
+    "subtitle": "AlphaDesk V1 is now open for experience requests from A-share portfolio managers",
+    "button": "Getting Started",
+    "footer": "We'll contact you within 2 business days",
+    "copyright": "© 2026 AlphaDesk · Shanghai"
+  }
+}

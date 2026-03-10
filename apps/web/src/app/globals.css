@@ -1,26 +1,299 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* AlphaDesk Design System Colors */
+  --color-cream: #FAF7F2;
+  --color-dark-green: #2C3E2D;
+  --color-green: #3A6B5A;
+  --color-green-dark: #2A5244;
+  --color-charcoal: #1C1C1C;
+  --color-warm-gray: #8A7E72;
+  --color-ochre: #B87333;
+  --color-gold: #C49A5C;
+  --color-cream-light: #F5F0E8;
+  --color-divider: #E8E0D4;
+
+  /* Default theme */
+  --background: var(--color-cream);
+  --foreground: var(--color-charcoal);
 }
 
 @theme inline {
+  --color-cream: #FAF7F2;
+  --color-cream-dark: #E8E0D4;
+  --color-dark-green: #2C3E2D;
+  --color-forest: #2C3E2D;
+  --color-green: #3A6B5A;
+  --color-green-dark: #2A5244;
+  --color-charcoal: #1C1C1C;
+  --color-warm-gray: #8A7E72;
+  --color-ochre: #B87333;
+  --color-gold: #C49A5C;
+  --color-cream-light: #F5F0E8;
+  --color-divider: #E8E0D4;
+  --color-sage-muted: #6B8F7B;
+  --color-accent-green: #5A8F6A;
+  --color-accent-red: #C54B3E;
+  --color-accent-amber: #C49A5C;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-serif: "Noto Serif SC", Georgia, "Times New Roman", serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Custom Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes strikethrough {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(58, 107, 90, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(58, 107, 90, 0.1);
+  }
+}
+
+@keyframes progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes steam {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.8);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-8px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.8);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    text-shadow: 0 0 0 rgba(184, 115, 51, 0);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(184, 115, 51, 0.5);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.4;
+    box-shadow: 0 0 0 0 rgba(58, 107, 90, 0.2);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 0 8px rgba(58, 107, 90, 0.05);
+  }
+}
+
+@keyframes curtain-reveal {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Animation utilities */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.animate-float {
+  animation: float 2s ease-in-out infinite;
+}
+
+.animate-strikethrough {
+  animation: strikethrough 0.3s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-progress {
+  animation: progress 3s ease-out forwards;
+}
+
+.animate-steam {
+  animation: steam 2s ease-in-out infinite;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-breathe {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.animate-curtain {
+  animation: curtain-reveal 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Stagger delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+.stagger-6 { animation-delay: 0.6s; }
+
+/* Steam animation delays */
+.steam-1 { animation-delay: 0s; }
+.steam-2 { animation-delay: 0.6s; }
+.steam-3 { animation-delay: 1.2s; }
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-float,
+  .animate-strikethrough,
+  .animate-pulse-glow,
+  .animate-progress,
+  .animate-steam,
+  .animate-fade-out,
+  .animate-glow,
+  .animate-breathe,
+  .animate-curtain {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Tabular numbers for financial data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-warm-gray);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-green);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(58, 107, 90, 0.2);
+  color: var(--color-charcoal);
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-charcoal);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for interactive elements */
+button, a {
+  transition: all 0.2s ease;
+}
+
+/* Language switcher styles */
+.lang-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lang-switcher button {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.lang-switcher button.active {
+  background-color: var(--color-green);
+  color: white;
+}
+
+.lang-switcher button:not(.active) {
+  color: var(--color-warm-gray);
+}
+
+.lang-switcher button:not(.active):hover {
+  background-color: var(--color-cream-light);
+  color: var(--color-charcoal);
 }

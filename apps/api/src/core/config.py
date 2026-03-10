@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     ENV: str = "dev"
     DATABASE_URL: str = "postgresql+asyncpg://localhost:5432/finance"
 
+    CLERK_WEBHOOK_SIGNING_SECRET: str = ""
+
     APP_NAME: str = "Finance Agent API"
     DEBUG: bool = ENV == "dev"
     API_V1_PREFIX: str = "/api/v1"
