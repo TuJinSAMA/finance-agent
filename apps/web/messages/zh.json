@@ -3,7 +3,10 @@
   "nav": {
     "cta": "申请体验",
     "signIn": "登录",
-    "signUp": "注册"
+    "signUp": "注册",
+    "dashboard": "仪表盘",
+    "portfolio": "我的持仓",
+    "reports": "研报"
   },
   "hero": {
     "title": {
@@ -99,6 +102,64 @@
       }
     }
   },
+  "dashboard": {
+    "title": "今日推荐",
+    "dateLabel": "推荐日期",
+    "loading": "加载中...",
+    "noData": "今日暂无推荐",
+    "noHistory": "暂无历史推荐",
+    "errorLoad": "加载失败，请稍后重试",
+    "retry": "重试",
+    "recommendCount": "{count} 只推荐",
+    "expand": "查看详情",
+    "collapse": "收起",
+    "score": "综合评分",
+    "quantScore": "量化评分",
+    "catalystScore": "催化剂评分",
+    "priceAtRec": "推荐时价格",
+    "industry": "行业",
+    "rank": "排名",
+    "stockLabel": "股票",
+    "historyTitle": "历史推荐回顾",
+    "historyDays": "最近 {days} 天",
+    "returnT1": "T+1 收益",
+    "returnT5": "T+5 收益",
+    "noReturn": "待更新",
+    "recDate": "推荐日期"
+  },
+  "portfolio": {
+    "title": "我的持仓",
+    "loading": "加载中...",
+    "errorLoad": "加载失败，请稍后重试",
+    "retry": "重试",
+    "totalMarketValue": "总市值",
+    "totalCost": "总成本",
+    "totalProfit": "总盈亏",
+    "holdingsCount": "持仓数量",
+    "addHolding": "添加持仓",
+    "editHolding": "编辑持仓",
+    "stockCode": "股票代码",
+    "stockCodePlaceholder": "例如 600519",
+    "quantity": "持仓数量（股）",
+    "avgCost": "平均成本价",
+    "currentPrice": "当前价",
+    "marketValue": "市值",
+    "profitLoss": "盈亏",
+    "profitPct": "盈亏比例",
+    "notes": "备注",
+    "notesPlaceholder": "可选，添加备注信息",
+    "actions": "操作",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirmDelete": "确定要删除该持仓吗？此操作不可撤销。",
+    "confirmDeleteTitle": "确认删除",
+    "noHoldings": "暂无持仓",
+    "noHoldingsDesc": "点击「添加持仓」按钮开始记录你的投资组合",
+    "stock": "股票",
+    "addedDate": "建仓日期",
+    "holdingUnit": "股"
+  },
   "features": {
     "cards": {
       "0": {
@@ -173,6 +234,13 @@
       }
     },
     "footer": "由 7 个 AI Agent 协同驱动。为 A 股基金经理设计。"
+  },
+  "notifications": {
+    "title": "通知",
+    "markAllRead": "全部已读",
+    "empty": "暂无通知",
+    "review": "查看详情",
+    "viewDetails": "查看详情"
   },
   "cta": {
     "title": {

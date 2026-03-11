@@ -297,3 +297,13 @@ button, a {
   background-color: var(--color-cream-light);
   color: var(--color-charcoal);
 }
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* Safe area padding for iOS bottom nav */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

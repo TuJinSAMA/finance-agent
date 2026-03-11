@@ -3,7 +3,10 @@
   "nav": {
     "cta": "Request Access",
     "signIn": "Sign In",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "dashboard": "Dashboard",
+    "portfolio": "Portfolio",
+    "reports": "Reports"
   },
   "hero": {
     "title": {
@@ -99,6 +102,64 @@
       }
     }
   },
+  "dashboard": {
+    "title": "Today's Picks",
+    "dateLabel": "Date",
+    "loading": "Loading...",
+    "noData": "No recommendations today",
+    "noHistory": "No historical recommendations",
+    "errorLoad": "Failed to load. Please try again.",
+    "retry": "Retry",
+    "recommendCount": "{count} picks",
+    "expand": "View details",
+    "collapse": "Collapse",
+    "score": "Score",
+    "quantScore": "Quant Score",
+    "catalystScore": "Catalyst Score",
+    "priceAtRec": "Price at Rec",
+    "industry": "Industry",
+    "rank": "Rank",
+    "stockLabel": "Stock",
+    "historyTitle": "Past Recommendations",
+    "historyDays": "Last {days} days",
+    "returnT1": "T+1 Return",
+    "returnT5": "T+5 Return",
+    "noReturn": "Pending",
+    "recDate": "Rec Date"
+  },
+  "portfolio": {
+    "title": "My Holdings",
+    "loading": "Loading...",
+    "errorLoad": "Failed to load. Please try again.",
+    "retry": "Retry",
+    "totalMarketValue": "Total Market Value",
+    "totalCost": "Total Cost",
+    "totalProfit": "Total P&L",
+    "holdingsCount": "Positions",
+    "addHolding": "Add Holding",
+    "editHolding": "Edit Holding",
+    "stockCode": "Stock Code",
+    "stockCodePlaceholder": "e.g. 600519",
+    "quantity": "Quantity (shares)",
+    "avgCost": "Avg Cost",
+    "currentPrice": "Current Price",
+    "marketValue": "Mkt Value",
+    "profitLoss": "P&L",
+    "profitPct": "P&L %",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes",
+    "actions": "Actions",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this holding? This action cannot be undone.",
+    "confirmDeleteTitle": "Confirm Delete",
+    "noHoldings": "No holdings yet",
+    "noHoldingsDesc": "Click \"Add Holding\" to start tracking your portfolio",
+    "stock": "Stock",
+    "addedDate": "Added Date",
+    "holdingUnit": "shares"
+  },
   "features": {
     "cards": {
       "0": {
@@ -173,6 +234,13 @@
       }
     },
     "footer": "Powered by 7 AI Agents working together. Built for A-share portfolio managers."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications",
+    "review": "Review now",
+    "viewDetails": "View details"
   },
   "cta": {
     "title": {

@@ -1,252 +1,439 @@
 "use client";
 
+import { useState } from "react";
 import {
   TrendingUp,
-  TrendingDown,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+  BarChart3,
+  Zap,
   RefreshCw,
-  ChevronRight,
+  AlertCircle,
+  Loader2,
+  Clock,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useApi } from "@/hooks/useApi";
+import type {
+  RecommendationListResponse,
+  RecommendationRead,
+} from "@/types/api";
 
-type RiskLevel = "green" | "amber" | "red";
-
-interface RiskItemDef {
-  key: string;
-  level: RiskLevel;
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  });
 }
 
-type Action = "BUY" | "SELL" | "REBALANCE";
-type Confidence = "HIGH" | "MEDIUM" | "LOW";
-type Status = "Pending Review" | "Scheduled" | "Executed";
-
-interface RecommendationDef {
-  stockKey: string;
-  code: string;
-  action: Action;
-  confidence: Confidence;
-  status: Status;
-  faded?: boolean;
-}
-
-const riskItemDefs: RiskItemDef[] = [
-  { key: "liquidityStress", level: "green" },
-  { key: "varLimit", level: "green" },
-  { key: "sectorConcentration", level: "green" },
-  { key: "volSpikeDetection", level: "amber" },
-  { key: "leverageRatio", level: "red" },
-];
-
-const recommendationDefs: RecommendationDef[] = [
-  { stockKey: "moutai", code: "600519.SH", action: "BUY", confidence: "HIGH", status: "Pending Review" },
-  { stockKey: "longi", code: "601012.SH", action: "SELL", confidence: "MEDIUM", status: "Pending Review" },
-  { stockKey: "catl", code: "300750.SZ", action: "REBALANCE", confidence: "MEDIUM", status: "Scheduled", faded: true },
-];
-
-const riskColorMap: Record<RiskLevel, { bg: string; border: string; dot: string; text: string }> = {
-  green: {
-    bg: "bg-accent-green/10",
-    border: "border-accent-green/20",
-    dot: "bg-accent-green",
-    text: "text-accent-green",
-  },
-  amber: {
-    bg: "bg-accent-amber/10",
-    border: "border-accent-amber/20",
-    dot: "bg-accent-amber",
-    text: "text-accent-amber",
-  },
-  red: {
-    bg: "bg-accent-red/10",
-    border: "border-accent-red/20",
-    dot: "bg-accent-red",
-    text: "text-accent-red",
-  },
-};
-
-const actionMap: Record<Action, string> = { BUY: "buy", SELL: "sell", REBALANCE: "rebalance" };
-const confidenceMap: Record<Confidence, string> = { HIGH: "high", MEDIUM: "medium", LOW: "low" };
-const statusMap: Record<Status, string> = { "Pending Review": "pendingReview", Scheduled: "scheduled", Executed: "executed" };
-
-function SnapshotCard({ label, children }: { label: string; children: React.ReactNode }) {
+function formatReturn(val: number | null, t: ReturnType<typeof useTranslations>) {
+  if (val === null || val === undefined) {
+    return <span className="text-warm-gray text-sm">{t("noReturn")}</span>;
+  }
+  const n = Number(val);
+  const pct = (n * 100).toFixed(2);
+  const isPositive = n > 0;
+  const color = isPositive ? "text-accent-red" : n < 0 ? "text-accent-green" : "text-charcoal";
   return (
-    <div className="bg-white border border-cream-dark p-5 rounded-xl flex flex-col gap-1 shadow-sm">
-      <p className="text-xs font-medium text-warm-gray uppercase tracking-wider">{label}</p>
-      {children}
+    <span className={`font-semibold tabular-nums ${color}`}>
+      {isPositive ? "+" : ""}{pct}%
+    </span>
+  );
+}
+
+function formatScore(val: number | null) {
+  if (val === null || val === undefined) return "—";
+  return (Number(val) * 100).toFixed(0);
+}
+
+function formatPrice(val: number | null) {
+  if (val === null || val === undefined) return "—";
+  return `¥${Number(val).toFixed(2)}`;
+}
+
+function LoadingState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3">
+      <Loader2 className="w-8 h-8 text-green animate-spin" />
+      <p className="text-warm-gray text-sm">{message}</p>
     </div>
   );
 }
 
-function RiskStatusBar() {
-  const t = useTranslations("product.dashboard");
+function ErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  const t = useTranslations("dashboard");
+  return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3">
+      <AlertCircle className="w-8 h-8 text-accent-red" />
+      <p className="text-warm-gray text-sm">{message}</p>
+      <button
+        onClick={onRetry}
+        className="text-sm font-medium text-green hover:text-green-dark transition-colors"
+      >
+        {t("retry")}
+      </button>
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-3">
+      <BarChart3 className="w-10 h-10 text-cream-dark" />
+      <p className="text-warm-gray">{message}</p>
+    </div>
+  );
+}
+
+function ScoreBadge({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cream border border-cream-dark">
+      <Icon className="w-3.5 h-3.5 text-warm-gray" />
+      <span className="text-xs text-warm-gray">{label}</span>
+      <span className="text-sm font-bold text-charcoal tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function RecommendationCard({ rec }: { rec: RecommendationRead }) {
+  const [expanded, setExpanded] = useState(false);
+  const t = useTranslations("dashboard");
 
   return (
-    <section className="bg-white border border-cream-dark p-4 rounded-xl shadow-sm flex items-center gap-6">
-      <h3 className="text-xs font-bold text-warm-gray uppercase tracking-widest px-2 border-r border-cream-dark whitespace-nowrap">
-        {t("riskStatus")}
-      </h3>
-      <div className="flex flex-wrap gap-3">
-        {riskItemDefs.map((item) => {
-          const colors = riskColorMap[item.level];
-          return (
-            <div
-              key={item.key}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${colors.bg} border ${colors.border}`}
-            >
-              <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
-              <span className={`text-xs font-semibold ${colors.text}`}>
-                {t(`risk.${item.key}`)}
+    <div className="bg-white border border-cream-dark rounded-xl shadow-sm overflow-hidden transition-all">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full text-left p-4 md:p-6 hover:bg-cream/30 transition-colors"
+      >
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          {/* Left: Rank + Stock info */}
+          <div className="flex items-start gap-4 flex-1 min-w-0">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-accent-green/10 flex items-center justify-center text-accent-green font-bold text-lg shrink-0">
+              #{rec.rank ?? "—"}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-base md:text-lg font-bold text-charcoal truncate">
+                  {rec.stock?.name ?? `Stock #${rec.stock_id}`}
+                </h4>
+                <span className="text-xs font-medium text-warm-gray bg-cream px-2 py-0.5 rounded border border-cream-dark whitespace-nowrap">
+                  {rec.stock?.code ?? ""}
+                </span>
+              </div>
+              {rec.stock?.industry && (
+                <p className="text-sm text-warm-gray mt-0.5">{rec.stock.industry}</p>
+              )}
+              {rec.reason_short && (
+                <p className="text-sm text-charcoal/80 mt-2 line-clamp-2">
+                  {rec.reason_short}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Scores + Price + Expand toggle */}
+          <div className="flex items-center gap-3 md:gap-4 flex-wrap md:flex-nowrap shrink-0">
+            <div className="flex flex-wrap gap-2">
+              <ScoreBadge
+                label={t("score")}
+                value={formatScore(rec.final_score)}
+                icon={TrendingUp}
+              />
+              <ScoreBadge
+                label={t("quantScore")}
+                value={formatScore(rec.quant_score)}
+                icon={BarChart3}
+              />
+              <ScoreBadge
+                label={t("catalystScore")}
+                value={formatScore(rec.catalyst_score)}
+                icon={Zap}
+              />
+            </div>
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-warm-gray">{t("priceAtRec")}</p>
+              <p className="text-base font-semibold text-charcoal tabular-nums">
+                {formatPrice(rec.price_at_rec)}
+              </p>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-cream flex items-center justify-center shrink-0">
+              {expanded ? (
+                <ChevronUp className="w-4 h-4 text-warm-gray" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-warm-gray" />
+              )}
+            </div>
+          </div>
+        </div>
+      </button>
+
+      {/* Expanded detail */}
+      {expanded && (
+        <div className="px-4 md:px-6 pb-4 md:pb-6 border-t border-cream-dark">
+          <div className="pt-4 space-y-4">
+            {/* Price at rec for mobile */}
+            <div className="sm:hidden flex items-center gap-4">
+              <span className="text-xs text-warm-gray">{t("priceAtRec")}</span>
+              <span className="text-sm font-semibold text-charcoal tabular-nums">
+                {formatPrice(rec.price_at_rec)}
               </span>
             </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
-function ActionIcon({ action }: { action: Action }) {
-  if (action === "BUY") {
-    return (
-      <div className="w-12 h-12 rounded-lg bg-accent-red/10 flex items-center justify-center text-accent-red">
-        <TrendingUp className="w-7 h-7" />
-      </div>
-    );
-  }
-  if (action === "SELL") {
-    return (
-      <div className="w-12 h-12 rounded-lg bg-accent-green/10 flex items-center justify-center text-accent-green">
-        <TrendingDown className="w-7 h-7" />
-      </div>
-    );
-  }
-  return (
-    <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-      <RefreshCw className="w-7 h-7" />
+            {/* Performance tracking */}
+            <div className="flex flex-wrap gap-6">
+              <div>
+                <span className="text-xs text-warm-gray block">{t("returnT1")}</span>
+                {formatReturn(rec.return_t1, t)}
+              </div>
+              <div>
+                <span className="text-xs text-warm-gray block">{t("returnT5")}</span>
+                {formatReturn(rec.return_t5, t)}
+              </div>
+            </div>
+
+            {/* Detailed reason */}
+            {rec.reason_detail && (
+              <div className="bg-cream/50 border border-cream-dark rounded-lg p-4">
+                <p className="text-sm text-charcoal/90 whitespace-pre-wrap leading-relaxed">
+                  {rec.reason_detail}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function actionColor(action: Action) {
-  if (action === "BUY") return "text-accent-red";
-  if (action === "SELL") return "text-accent-green";
-  return "text-slate-500";
-}
+function HistorySection({
+  data,
+  loading,
+}: {
+  data: RecommendationListResponse[] | null;
+  loading: boolean;
+}) {
+  const t = useTranslations("dashboard");
 
-function statusStyle(status: Status) {
-  if (status === "Pending Review") return "text-accent-amber bg-accent-amber/5 border-accent-amber/20";
-  if (status === "Scheduled") return "text-slate-400 bg-slate-50 border-slate-200";
-  return "text-accent-green bg-accent-green/5 border-accent-green/20";
-}
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-8 justify-center">
+        <Loader2 className="w-5 h-5 text-green animate-spin" />
+        <span className="text-sm text-warm-gray">{t("loading")}</span>
+      </div>
+    );
+  }
 
-function RecommendationCard({ rec }: { rec: RecommendationDef }) {
-  const t = useTranslations("product.dashboard");
+  if (!data || data.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-warm-gray text-sm">{t("noHistory")}</p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`bg-white border border-cream-dark rounded-xl p-6 shadow-sm flex items-center justify-between hover:border-accent-green/50 transition-colors cursor-pointer ${
-        rec.faded ? "opacity-60 bg-white/50" : ""
-      }`}
-    >
-      <div className="flex items-center gap-6">
-        <ActionIcon action={rec.action} />
-        <div>
-          <div className="flex items-center gap-3">
-            <h4 className="text-lg font-bold text-charcoal">
-              {t(`stocks.${rec.stockKey}.name`)}
-            </h4>
-            <span className="text-xs font-medium text-warm-gray bg-cream px-2 py-0.5 rounded border border-cream-dark">
-              {rec.code}
+    <div className="space-y-4">
+      {data.map((dayGroup) => (
+        <div key={dayGroup.rec_date} className="bg-white border border-cream-dark rounded-xl overflow-hidden">
+          <div className="px-4 md:px-6 py-3 border-b border-cream-dark bg-cream/30 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-warm-gray" />
+            <span className="text-sm font-medium text-charcoal">
+              {formatDate(dayGroup.rec_date)}
+            </span>
+            <span className="text-xs text-warm-gray ml-2">
+              {dayGroup.count} {t("recommendCount", { count: dayGroup.count }).replace(/\d+\s*/, "")}
             </span>
           </div>
-          <p className="text-sm text-warm-gray mt-1 italic">
-            {t(`stocks.${rec.stockKey}.sector`)}
-          </p>
+
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-warm-gray uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 font-medium">{t("rank")}</th>
+                  <th className="text-left px-6 py-3 font-medium">{t("stockLabel")}</th>
+                  <th className="text-right px-6 py-3 font-medium">{t("score")}</th>
+                  <th className="text-right px-6 py-3 font-medium">{t("priceAtRec")}</th>
+                  <th className="text-right px-6 py-3 font-medium">{t("returnT1")}</th>
+                  <th className="text-right px-6 py-3 font-medium">{t("returnT5")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-cream-dark">
+                {dayGroup.recommendations.map((rec) => (
+                  <tr key={rec.id} className="hover:bg-cream/30 transition-colors">
+                    <td className="px-6 py-3 font-bold text-charcoal">#{rec.rank ?? "—"}</td>
+                    <td className="px-6 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-charcoal">
+                          {rec.stock?.name ?? "—"}
+                        </span>
+                        <span className="text-xs text-warm-gray">{rec.stock?.code}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-3 text-right font-semibold text-charcoal tabular-nums">
+                      {formatScore(rec.final_score)}
+                    </td>
+                    <td className="px-6 py-3 text-right tabular-nums">
+                      {formatPrice(rec.price_at_rec)}
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      {formatReturn(rec.return_t1, t)}
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      {formatReturn(rec.return_t5, t)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden divide-y divide-cream-dark">
+            {dayGroup.recommendations.map((rec) => (
+              <div key={rec.id} className="p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-charcoal">#{rec.rank}</span>
+                    <span className="font-medium text-charcoal">{rec.stock?.name}</span>
+                    <span className="text-xs text-warm-gray">{rec.stock?.code}</span>
+                  </div>
+                  <span className="text-sm font-semibold tabular-nums">{formatScore(rec.final_score)}</span>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div>
+                    <span className="text-xs text-warm-gray">{t("returnT1")} </span>
+                    {formatReturn(rec.return_t1, t)}
+                  </div>
+                  <div>
+                    <span className="text-xs text-warm-gray">{t("returnT5")} </span>
+                    {formatReturn(rec.return_t5, t)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-12">
-        <div className="text-right">
-          <p className="text-xs font-medium text-warm-gray uppercase tracking-tighter">
-            {t("action")}
-          </p>
-          <p className={`text-lg font-bold uppercase ${actionColor(rec.action)}`}>
-            {t(actionMap[rec.action])}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs font-medium text-warm-gray uppercase tracking-tighter">
-            {t("confidence")}
-          </p>
-          <p className="text-lg font-bold text-charcoal">
-            {t(confidenceMap[rec.confidence])}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs font-medium text-warm-gray uppercase tracking-tighter">
-            {t("status")}
-          </p>
-          <p className={`text-sm font-bold px-3 py-1 rounded-full border ${statusStyle(rec.status)}`}>
-            {t(statusMap[rec.status])}
-          </p>
-        </div>
-        <button className="w-10 h-10 rounded-full bg-cream hover:bg-cream-dark flex items-center justify-center transition-colors">
-          <ChevronRight className="w-5 h-5 text-warm-gray" />
-        </button>
-      </div>
+      ))}
     </div>
   );
 }
 
 export default function DashboardPage() {
-  const t = useTranslations("product.dashboard");
-  const totalRecommendations = 5;
-  const pendingCount = recommendationDefs.filter((r) => r.status === "Pending Review").length;
+  const t = useTranslations("dashboard");
+  const today = new Date().toISOString().split("T")[0];
+
+  const {
+    data: todayData,
+    loading: todayLoading,
+    error: todayError,
+    refetch: refetchToday,
+  } = useApi<RecommendationListResponse>(
+    `/api/v1/recommendations/today?rec_date=${today}`,
+  );
+
+  const {
+    data: historyData,
+    loading: historyLoading,
+    error: historyError,
+    refetch: refetchHistory,
+  } = useApi<RecommendationListResponse[]>(
+    "/api/v1/recommendations/history?days=7",
+  );
 
   return (
-    <div className="p-8 space-y-8">
-      {/* Portfolio Snapshot */}
-      <section className="grid grid-cols-4 gap-4">
-        <SnapshotCard label={t("totalAum")}>
-          <p className="text-2xl font-bold text-charcoal tabular-nums">¥ 234.5M</p>
-        </SnapshotCard>
-        <SnapshotCard label={t("todaysPnL")}>
-          <p className="text-2xl font-bold text-accent-red tabular-nums">
-            +¥ 3.28M <span className="text-lg font-medium ml-1">(+1.42%)</span>
-          </p>
-        </SnapshotCard>
-        <SnapshotCard label={t("netExposure")}>
-          <p className="text-2xl font-bold text-charcoal tabular-nums">
-            67.3% <span className="text-lg font-normal text-warm-gray">{t("netLong")}</span>
-          </p>
-        </SnapshotCard>
-        <SnapshotCard label={t("positions")}>
-          <p className="text-2xl font-bold text-charcoal tabular-nums">47</p>
-        </SnapshotCard>
-      </section>
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2 text-sm text-warm-gray">
+            <Calendar className="w-4 h-4" />
+            <span>{formatDate(today)}</span>
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            refetchToday();
+            refetchHistory();
+          }}
+          className="flex items-center gap-2 text-sm font-medium text-green hover:text-green-dark transition-colors self-start sm:self-auto"
+        >
+          <RefreshCw className="w-4 h-4" />
+          {t("retry")}
+        </button>
+      </div>
 
-      {/* Risk Status */}
-      <RiskStatusBar />
-
-      {/* Recommendations */}
-      <section className="space-y-6">
-        <div className="flex items-end justify-between border-b border-cream-dark pb-4">
-          <h2 className="text-2xl font-semibold text-charcoal">
-            {t("recommendations")}{" "}
-            <span className="text-warm-gray font-normal text-lg ml-2">
-              · {totalRecommendations} {t("total")} · {pendingCount} {t("pendingReviewCount")}
-            </span>
+      {/* Today's Recommendations */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <TrendingUp className="w-5 h-5 text-green" />
+          <h2 className="text-xl md:text-2xl font-semibold text-charcoal">
+            {t("title")}
           </h2>
-          <button className="text-xs font-bold text-accent-green uppercase tracking-widest hover:underline">
-            {t("viewAll")}
-          </button>
+          {todayData && (
+            <span className="text-sm text-warm-gray">
+              {todayData.count} {t("recommendCount", { count: todayData.count }).replace(/\d+\s*/, "")}
+            </span>
+          )}
         </div>
-        <div className="grid grid-cols-1 gap-4">
-          {recommendationDefs.map((rec) => (
-            <RecommendationCard key={rec.code} rec={rec} />
-          ))}
-        </div>
+
+        {todayLoading && <LoadingState message={t("loading")} />}
+
+        {todayError && (
+          <ErrorState message={t("errorLoad")} onRetry={refetchToday} />
+        )}
+
+        {!todayLoading && !todayError && todayData?.recommendations.length === 0 && (
+          <EmptyState message={t("noData")} />
+        )}
+
+        {todayData && todayData.recommendations.length > 0 && (
+          <div className="grid grid-cols-1 gap-4">
+            {todayData.recommendations.map((rec) => (
+              <RecommendationCard key={rec.id} rec={rec} />
+            ))}
+          </div>
+        )}
       </section>
 
-      <div className="h-12" />
+      {/* History */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-3 border-t border-cream-dark pt-6">
+          <Clock className="w-5 h-5 text-warm-gray" />
+          <h2 className="text-lg md:text-xl font-semibold text-charcoal">
+            {t("historyTitle")}
+          </h2>
+        </div>
+
+        {historyError && (
+          <ErrorState message={t("errorLoad")} onRetry={refetchHistory} />
+        )}
+
+        {!historyError && (
+          <HistorySection data={historyData} loading={historyLoading} />
+        )}
+      </section>
+
+      <div className="h-8" />
     </div>
   );
 }
