@@ -50,6 +50,15 @@ jobs:
             sudo systemctl restart finance-agent-api
 
             echo "==> Health check..."
-            sleep 3
-            curl -sf http://127.0.0.1:8000/health || (echo "::error::Health check failed!" && exit 1)
-            echo "Deploy succeeded!"
+            for i in 1 2 3 4 5 6; do
+              sleep 5
+              if curl -sf http://127.0.0.1:8000/health; then
+                echo ""
+                echo "Deploy succeeded!"
+                exit 0
+              fi
+              echo "Attempt $i failed, retrying..."
+            done
+            echo "::error::Health check failed after 30s!"
+            sudo journalctl -u finance-agent-api --no-pager -n 30
+            exit 1

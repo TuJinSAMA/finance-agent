@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "../../navigation";
 import { apiFetch } from "@/lib/api";
 import type { NotificationListResponse, NotificationRead } from "@/types/api";
 
@@ -52,11 +53,22 @@ function NotificationIcon({ type }: { type: string }) {
 function NotificationItem({
   notification,
   onMarkRead,
+  onNavigate,
 }: {
   notification: NotificationRead;
   onMarkRead: (id: string) => void;
+  onNavigate: (url: string) => void;
 }) {
   const t = useTranslations("notifications");
+
+  const handleClick = () => {
+    if (!notification.is_read) {
+      onMarkRead(notification.id);
+    }
+    if (notification.action_url) {
+      onNavigate(notification.action_url);
+    }
+  };
 
   return (
     <div
@@ -87,7 +99,7 @@ function NotificationItem({
             </p>
           )}
           <button
-            onClick={() => onMarkRead(notification.id)}
+            onClick={handleClick}
             className="flex items-center gap-0.5 text-xs font-medium text-ochre hover:text-ochre/80 mt-2 transition-colors"
           >
             {notification.is_read ? t("viewDetails") : t("review")}
@@ -110,6 +122,7 @@ export default function NotificationPanel({
 }) {
   const { getToken } = useAuth();
   const t = useTranslations("notifications");
+  const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
 
   const [notifications, setNotifications] = useState<NotificationRead[]>([]);
@@ -176,6 +189,14 @@ export default function NotificationPanel({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
 
+  const handleNavigate = useCallback(
+    (url: string) => {
+      onClose();
+      router.push(url);
+    },
+    [onClose, router],
+  );
+
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   if (!open) return null;
@@ -236,6 +257,7 @@ export default function NotificationPanel({
                 key={n.id}
                 notification={n}
                 onMarkRead={handleMarkRead}
+                onNavigate={handleNavigate}
               />
             ))}
         </div>

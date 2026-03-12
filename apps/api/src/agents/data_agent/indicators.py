@@ -51,7 +51,7 @@ def compute_indicators(df: pd.DataFrame) -> pd.DataFrame:
     rs = avg_gain / avg_loss.replace(0, np.nan)
     rsi = 100.0 - 100.0 / (1.0 + rs)
     # avg_loss==0 → rs=NaN → rsi=NaN, but should be 100 (all gains, no losses)
-    rsi = rsi.fillna(np.where(avg_gain > 0, 100.0, 50.0))
+    rsi = rsi.fillna(pd.Series(np.where(avg_gain > 0, 100.0, 50.0), index=rsi.index))
     out["rsi_14"] = rsi
 
     # ── Bollinger Bands (20, 2) ──

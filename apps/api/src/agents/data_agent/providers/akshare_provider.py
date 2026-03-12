@@ -79,13 +79,29 @@ async def fetch_stock_history(
 
 
 async def fetch_valuation_all() -> pd.DataFrame:
-    """全市场估值指标（PE_TTM, PB, PS_TTM, 市值等），批量接口。"""
-    return await _call(ak.stock_a_lg_indicator, stock="all")
+    """
+    全市场估值指标（PE动态, PB, 市值等），批量接口。
+    原 stock_a_lg_indicator 数据源已停服，改用 stock_zh_a_spot_em 中的估值字段。
+    """
+    df = await _call(ak.stock_zh_a_spot_em)
+    if df is None or df.empty:
+        return df
+    return df[["代码", "市盈率-动态", "市净率", "总市值", "流通市值"]].rename(columns={
+        "代码": "code",
+        "市盈率-动态": "pe_ttm",
+        "市净率": "pb",
+        "总市值": "total_mv",
+        "流通市值": "float_mv",
+    })
 
 
-async def fetch_financial_analysis(symbol: str, start_year: str = "2023") -> pd.DataFrame:
-    """单只股票财务分析指标（ROE, 毛利率, 净利率等）。"""
-    return await _call(ak.stock_financial_analysis_indicator, symbol=symbol, start_year=start_year)
+async def fetch_financial_report_batch(date: str = "20240930") -> pd.DataFrame:
+    """
+    全市场业绩报表（东方财富），批量接口，一次返回 ~5900 只股票。
+    date 格式: YYYYMMDD，须为季报日期（0331/0630/0930/1231）。
+    返回列: 股票代码, 净资产收益率, 销售毛利率, 每股经营现金流量, 所处行业 等。
+    """
+    return await _call(ak.stock_yjbb_em, date=date)
 
 
 # ── Stock Info (Listing Dates) ─────────────────────────────
