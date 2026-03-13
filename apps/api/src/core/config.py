@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     EMAIL_FROM: str = "AlphaDesk <recommendations@alphadesk.ai>"
 
+    JQDATA_USERNAME: str = ""
+    JQDATA_PASSWORD: str = ""
+
+    TUSHARE_TOKEN: str = ""
+
     @property
     def DATABASE_URL_SYNC(self) -> str:
         """Sync DB URL for libraries that don't support asyncpg (e.g. APScheduler)."""

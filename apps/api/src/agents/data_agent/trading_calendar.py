@@ -1,7 +1,7 @@
 import logging
 from datetime import date
 
-from src.agents.data_agent.providers import akshare_provider as provider
+from src.agents.data_agent.providers import tushare_provider as provider
 
 logger = logging.getLogger(__name__)
 

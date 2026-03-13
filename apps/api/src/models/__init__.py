@@ -1,5 +1,6 @@
 from src.models.base import Base, TimestampMixin, UUIDMixin
 from src.models.event import StockEvent
+from src.models.job_log import JobExecutionLog
 from src.models.portfolio import Portfolio, PortfolioAlert, PortfolioHolding
 from src.models.recommendation import Recommendation, UserRecommendation
 from src.models.stock import (
@@ -28,4 +29,5 @@ __all__ = [
     "Portfolio",
     "PortfolioHolding",
     "PortfolioAlert",
+    "JobExecutionLog",
 ]

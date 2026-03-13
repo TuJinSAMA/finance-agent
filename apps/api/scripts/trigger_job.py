@@ -30,6 +30,8 @@ import logging
 import sys
 import time
 
+from src.core.job_logger import JobLogger
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -55,43 +57,53 @@ JOB_DESCRIPTIONS = {
     "rec_performance_tracking": "更新历史推荐 T+1/T+5 收益",
 }
 
+# trigger_job.py 中使用的 job_name 到 JobLogger job_id 的映射
+# weekly_sync 的 job_id 在 jobs.py 里是 weekly_stock_sync
+_JOB_LOG_IDS = {
+    "weekly_sync": "weekly_stock_sync",
+}
+
 ALL_JOBS = list(JOB_DESCRIPTIONS.keys())
 
 
 async def run_single_job(job_name: str) -> bool:
     """运行单个 job，返回是否成功。"""
     t0 = time.time()
+    job_id = _JOB_LOG_IDS.get(job_name, job_name)
+    job_desc = JOB_DESCRIPTIONS.get(job_name, job_name)
+    log_id = JobLogger.start(job_id, job_desc)
     try:
         if job_name == "daily_quotes":
             from src.agents.data_agent.jobs import _daily_quotes_async
-            await _daily_quotes_async()
+            await _daily_quotes_async(log_id)
 
         elif job_name == "technical_indicators":
             from src.agents.data_agent.jobs import _technical_indicators_async
-            await _technical_indicators_async()
+            await _technical_indicators_async(log_id)
 
         elif job_name == "weekly_sync":
             from src.agents.data_agent.jobs import _weekly_sync_async
-            await _weekly_sync_async()
+            await _weekly_sync_async(log_id)
 
         elif job_name == "daily_screening":
             from src.agents.orchestrator.jobs import _daily_screening_async
-            await _daily_screening_async()
+            await _daily_screening_async(log_id)
 
         elif job_name == "morning_event_scan":
             from src.agents.event_agent.jobs import _morning_event_scan_async
-            await _morning_event_scan_async()
+            await _morning_event_scan_async(log_id)
 
         elif job_name == "daily_recommendation":
             from src.agents.orchestrator.jobs import _daily_recommendation_async
-            await _daily_recommendation_async()
+            await _daily_recommendation_async(log_id)
 
         elif job_name == "rec_performance_tracking":
             from src.agents.orchestrator.jobs import _rec_performance_async
-            await _rec_performance_async()
+            await _rec_performance_async(log_id)
 
         else:
             logger.error("Unknown job: %s", job_name)
+            JobLogger.fail(log_id, f"Unknown job: {job_name}")
             return False
 
         elapsed = time.time() - t0

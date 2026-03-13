@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.agents.data_agent.providers import akshare_provider as provider
+from src.agents.data_agent.providers import tushare_provider as provider
 from src.agents.screener_config import screener_config as cfg
 from src.models.event import StockEvent
 from src.models.stock import Stock

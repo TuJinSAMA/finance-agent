@@ -7,7 +7,8 @@ from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.agents.data_agent.providers import akshare_provider as provider
+from src.agents.data_agent.providers import jqdata_provider as _jq_provider
+from src.agents.data_agent.providers import tushare_provider as provider
 from src.agents.screener_config import screener_config
 from src.models.stock import Stock, StockDailyQuote
 
@@ -118,16 +119,17 @@ class DataAgent:
         返回更新的股票数量。
         """
         logger.info("Syncing industry mapping...")
-        board_df = await provider.fetch_industry_board_list()
+        board_df = await _jq_provider.fetch_industry_board_list()
         if board_df is None or board_df.empty:
             logger.error("fetch_industry_board_list returned empty data")
             return 0
 
         updated = 0
         for _, row in board_df.iterrows():
+            industry_code = str(row["板块代码"]).strip()
             industry_name = str(row["板块名称"]).strip()
             try:
-                cons_df = await provider.fetch_industry_constituents(industry_name)
+                cons_df = await _jq_provider.fetch_industry_constituents(industry_code)
             except Exception:
                 logger.warning("Failed to fetch constituents for industry: %s", industry_name)
                 continue

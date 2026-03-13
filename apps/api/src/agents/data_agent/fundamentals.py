@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents.data_agent.fetcher import _full_code
-from src.agents.data_agent.providers import akshare_provider as provider
+from src.agents.data_agent.providers import tushare_provider as provider
 from src.agents.screener_config import screener_config
 from src.models.stock import Stock, StockFundamental
 
@@ -117,10 +117,6 @@ async def fetch_financial_batch(db: AsyncSession) -> int:
 
     stock_map = await _get_stock_code_map(db)
 
-    # 预加载 total_shares 用于计算绝对经营现金流
-    shares_result = await db.execute(select(Stock.id, Stock.total_shares))
-    shares_map = {row[0]: row[1] for row in shares_result.all() if row[1]}
-
     records = []
     for _, row in df.iterrows():
         raw_code = str(row.get("股票代码", "")).strip()
@@ -131,13 +127,7 @@ async def fetch_financial_batch(db: AsyncSession) -> int:
         if stock_id is None:
             continue
 
-        cf_per_share = _safe_float(row.get("每股经营现金流量"))
-        operating_cf = None
-        if cf_per_share is not None:
-            total_shares = shares_map.get(stock_id)
-            if total_shares:
-                operating_cf = round(cf_per_share * total_shares, 2)
-
+        # ocf_to_revenue 是经营现金流/营收比率（0~1），存入 operating_cf 字段
         records.append({
             "stock_id": stock_id,
             "report_date": report_date,
@@ -145,7 +135,7 @@ async def fetch_financial_batch(db: AsyncSession) -> int:
             "gross_margin": _safe_float(row.get("销售毛利率")),
             "revenue_yoy": _safe_float(row.get("营业总收入-同比增长")),
             "profit_yoy": _safe_float(row.get("净利润-同比增长")),
-            "operating_cf": operating_cf,
+            "operating_cf": _safe_float(row.get("经营现金流率")),
         })
 
     if not records:

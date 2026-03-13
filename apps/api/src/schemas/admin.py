@@ -4,13 +4,29 @@ from decimal import Decimal
 from pydantic import BaseModel
 
 
+class JobExecutionLogRead(BaseModel):
+    id: int
+    job_id: str
+    job_name: str
+    status: str
+    started_at: datetime
+    finished_at: datetime | None = None
+    duration_seconds: float | None = None
+    records_affected: int | None = None
+    error_message: str | None = None
+    meta: dict | None = None
+
+    model_config = {"from_attributes": True}
+
+
 class PipelineStepStatus(BaseModel):
     step: str
     label: str
-    status: str  # "completed" | "pending" | "failed" | "not_scheduled"
+    status: str  # "completed" | "pending" | "failed" | "skipped" | "not_scheduled"
     last_run: datetime | None = None
     next_run: datetime | None = None
     detail: str | None = None
+    last_log: JobExecutionLogRead | None = None
 
 
 class PipelineStatusResponse(BaseModel):

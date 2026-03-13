@@ -5,9 +5,10 @@ from decimal import Decimal
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.models.job_log import JobExecutionLog
 from src.models.recommendation import Recommendation
-from src.models.watchlist import Watchlist, WatchlistSnapshot
 from src.schemas.admin import (
+    JobExecutionLogRead,
     PipelineLogEntry,
     PipelineStepStatus,
     RecommendationStatsResponse,
@@ -34,6 +35,11 @@ class AdminService:
             ("rec_performance_tracking", "推荐表现追踪", "15:45"),
         ]
 
+        # 一次性查询每个 job 最近一条执行记录
+        latest_logs = await self._get_latest_logs(
+            [jid for jid, _, _ in job_defs], target_date
+        )
+
         for job_id, label, schedule_time in job_defs:
             job = scheduler.get_job(job_id)
             if not job:
@@ -44,89 +50,86 @@ class AdminService:
                 ))
                 continue
 
-            next_run = job.next_run_time
-
-            has_data = await self._check_step_completion(job_id, target_date)
-            status = "completed" if has_data else "pending"
+            last_log = latest_logs.get(job_id)
+            if last_log:
+                status = last_log.status  # success / failed / skipped / running
+                last_run = last_log.started_at
+                detail = last_log.error_message if last_log.status == "failed" else None
+            else:
+                status = "pending"
+                last_run = None
+                detail = f"No execution record for {target_date}"
 
             steps.append(PipelineStepStatus(
                 step=job_id,
                 label=f"{label}（{schedule_time}）",
                 status=status,
-                next_run=next_run,
-                detail=f"Data {'found' if has_data else 'not found'} for {target_date}",
+                last_run=last_run,
+                next_run=job.next_run_time,
+                detail=detail,
+                last_log=JobExecutionLogRead.model_validate(last_log) if last_log else None,
             ))
 
         return steps
 
-    async def _check_step_completion(self, job_id: str, target_date: date) -> bool:
-        if job_id == "daily_recommendation":
-            count = await self.db.scalar(
-                select(func.count())
-                .select_from(Recommendation)
-                .where(Recommendation.rec_date == target_date)
-            )
-            return (count or 0) > 0
+    async def _get_latest_logs(
+        self, job_ids: list[str], target_date: date
+    ) -> dict[str, JobExecutionLog]:
+        """查询指定日期每个 job 最近一条执行记录（按 started_at 降序取第一条）。"""
+        from datetime import datetime, time, timezone
 
-        if job_id == "daily_screening":
-            count = await self.db.scalar(
-                select(func.count())
-                .select_from(WatchlistSnapshot)
-                .where(WatchlistSnapshot.snapshot_date == target_date)
-            )
-            return (count or 0) > 0
+        day_start = datetime.combine(target_date, time.min).replace(tzinfo=timezone.utc)
+        day_end = datetime.combine(target_date, time.max).replace(tzinfo=timezone.utc)
 
-        if job_id == "rec_performance_tracking":
-            count = await self.db.scalar(
-                select(func.count())
-                .select_from(Recommendation)
-                .where(
-                    Recommendation.price_t1.is_not(None),
-                    Recommendation.rec_date >= target_date - timedelta(days=7),
-                )
-            )
-            return (count or 0) > 0
+        result = await self.db.execute(
+            select(JobExecutionLog)
+            .where(JobExecutionLog.job_id.in_(job_ids))
+            .where(JobExecutionLog.started_at >= day_start)
+            .where(JobExecutionLog.started_at <= day_end)
+            .order_by(JobExecutionLog.started_at.desc())
+        )
+        logs = result.scalars().all()
 
-        return False
+        # 每个 job_id 只保留最新一条
+        latest: dict[str, JobExecutionLog] = {}
+        for log in logs:
+            if log.job_id not in latest:
+                latest[log.job_id] = log
+        return latest
 
     async def get_pipeline_logs(self, target_date: date) -> list[PipelineLogEntry]:
+        """从 job_execution_logs 读取当日所有任务执行记录。"""
+        from datetime import datetime, time, timezone
+
+        day_start = datetime.combine(target_date, time.min).replace(tzinfo=timezone.utc)
+        day_end = datetime.combine(target_date, time.max).replace(tzinfo=timezone.utc)
+
+        result = await self.db.execute(
+            select(JobExecutionLog)
+            .where(JobExecutionLog.started_at >= day_start)
+            .where(JobExecutionLog.started_at <= day_end)
+            .order_by(JobExecutionLog.started_at.asc())
+        )
+        execution_logs = result.scalars().all()
+
         logs: list[PipelineLogEntry] = []
+        for log in execution_logs:
+            detail: dict = {
+                "status": log.status,
+                "duration_seconds": log.duration_seconds,
+                "records_affected": log.records_affected,
+            }
+            if log.meta:
+                detail.update(log.meta)
+            if log.error_message:
+                detail["error_message"] = log.error_message
 
-        rec_count = await self.db.scalar(
-            select(func.count())
-            .select_from(Recommendation)
-            .where(Recommendation.rec_date == target_date)
-        ) or 0
-        logs.append(PipelineLogEntry(
-            date=target_date,
-            step="daily_recommendation",
-            label="推荐流水线",
-            detail={"recommendations_count": rec_count},
-        ))
-
-        snapshot_count = await self.db.scalar(
-            select(func.count())
-            .select_from(WatchlistSnapshot)
-            .where(WatchlistSnapshot.snapshot_date == target_date)
-        ) or 0
-        logs.append(PipelineLogEntry(
-            date=target_date,
-            step="daily_screening",
-            label="量化筛选",
-            detail={"watchlist_snapshot_count": snapshot_count},
-        ))
-
-        active_watchlist = await self.db.scalar(
-            select(func.count())
-            .select_from(Watchlist)
-            .where(Watchlist.status == "active")
-        ) or 0
-        logs.append(PipelineLogEntry(
-            date=target_date,
-            step="watchlist_status",
-            label="关注池状态",
-            detail={"active_count": active_watchlist},
-        ))
+            logs.append(PipelineLogEntry(
+                date=target_date,
+                step=log.job_id,
+                label=log.job_name,
+                detail=detail,
+            ))
 
         return logs
 

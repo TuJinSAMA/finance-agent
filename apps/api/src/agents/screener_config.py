@@ -79,8 +79,9 @@ class ScreenerConfig:
     # 历史回填默认天数
     default_backfill_days: int = 180
 
-    # AKShare 请求间隔（秒）
-    akshare_rate_limit: float = 0.3
+    # JQData 请求间隔（秒）
+    akshare_rate_limit: float = 0.3  # 保留旧名以兼容现有引用
+    jqdata_rate_limit: float = 0.3
 
     # 批量写入每块大小
     db_batch_chunk_size: int = 500

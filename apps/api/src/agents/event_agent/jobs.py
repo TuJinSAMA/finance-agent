@@ -11,6 +11,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents.data_agent.trading_calendar import trading_calendar
+from src.core.job_logger import JobLogger
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +20,17 @@ def morning_event_scan_job():
     """每日 06:30 合并扫描（关注池 + 用户持仓）。"""
     if not trading_calendar.is_trading_day():
         logger.info("morning_event_scan_job: not a trading day, skipping")
+        JobLogger.skip("morning_event_scan", "事件扫描 + LLM 分析")
         return
-    asyncio.run(_morning_event_scan_async())
+    log_id = JobLogger.start("morning_event_scan", "事件扫描 + LLM 分析")
+    try:
+        asyncio.run(_morning_event_scan_async(log_id))
+    except Exception as exc:
+        JobLogger.fail(log_id, str(exc))
+        raise
 
 
-async def _morning_event_scan_async():
+async def _morning_event_scan_async(log_id: int | None):
     from src.agents.event_agent.analyzer import CatalystAnalyzer
     from src.agents.event_agent.scanner import EventScanner
     from src.core.database import async_session
@@ -87,8 +94,21 @@ async def _morning_event_scan_async():
                 "watchlist_catalyst_updated=%d, portfolio_alerts=%d",
                 news_count, analyzed_count, updated, alerts_created,
             )
-        except Exception:
+            JobLogger.finish(
+                log_id,
+                records_affected=news_count,
+                meta={
+                    "news_fetched": news_count,
+                    "analyzed": analyzed_count,
+                    "watchlist_catalyst_updated": updated,
+                    "portfolio_alerts": alerts_created,
+                    "stocks_scanned": len(all_stock_ids),
+                },
+            )
+        except Exception as exc:
             logger.exception("morning_event_scan_job failed")
+            JobLogger.fail(log_id, str(exc))
+            raise
 
 
 async def _get_portfolio_stock_ids(db: AsyncSession) -> set[int]:
