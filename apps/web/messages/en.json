@@ -4,7 +4,7 @@
     "cta": "Request Access",
     "signIn": "Sign In",
     "signUp": "Sign Up",
-    "dashboard": "Dashboard",
+    "dashboard": "Recommendations",
     "portfolio": "Portfolio",
     "reports": "Reports"
   },
@@ -20,8 +20,8 @@
     },
     "subtitle": "AI Multi-Agent Investment Decision Assistant",
     "description": "Review recommendations, make decisions. That's all.",
-    "ctaSignInDashboard": "Sign in to view today's picks",
-    "ctaDashboard": "Go to Dashboard",
+    "ctaSignInDashboard": "Sign in to view today's recommendations",
+    "ctaDashboard": "Go to Recommendations",
     "ctaLearnMethod": "See our methodology",
     "ctaViewToday": "View today's picks",
     "heroSummary": {
@@ -74,7 +74,7 @@
       }
     },
     "dashboard": {
-      "title": "Dashboard",
+      "title": "Recommendations",
       "totalAum": "Total AUM",
       "todaysPnL": "Today's P&L",
       "netExposure": "Net Exposure",
@@ -135,6 +135,16 @@
     "returnT5": "T+5 Return",
     "noReturn": "Pending",
     "recDate": "Rec Date"
+  },
+  "board": {
+    "title": "Recommendations Board",
+    "loading": "Loading board...",
+    "retry": "Retry",
+    "asOf": "As of",
+    "source": "Source",
+    "loginCta": "Sign in to view recommendations",
+    "unavailable": "Board unavailable",
+    "noChange": "No change"
   },
   "portfolio": {
     "title": "My Holdings",
@@ -197,7 +207,7 @@
       "1": {
         "time": "08:30",
         "title": "Review Recommendations",
-        "content": "On the Dashboard, 3 recommendations neatly arranged.",
+        "content": "In Recommendations, 3 ideas are neatly laid out.",
         "quote": "First: Buy Kweichow Moutai, confidence HIGH. You click to see the decision chain — earnings beat expectations, technical breakout, positive sentiment. Portfolio impact? Consumer exposure rises to 28%, approaching but not triggering threshold.",
         "action": "You thought for 10 seconds and clicked APPROVE.",
         "highlight": true
@@ -215,7 +225,7 @@
         "title": "Intraday Event",
         "content": "A push notification popped up.",
         "quote": "CATL announces new energy storage product. Institutional expectations raised for 2025 shipments. New recommendation: Add to CATL, confidence MEDIUM.",
-        "action": "You switch to Dashboard. Event stream and recommendation cards are already waiting."
+        "action": "You switch to Recommendations. The event stream and recommendation cards are already waiting."
       },
       "4": {
         "time": "16:00",

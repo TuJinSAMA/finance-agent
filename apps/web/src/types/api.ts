@@ -113,3 +113,29 @@ export interface NotificationListResponse {
 export interface UnreadCountResponse {
   count: number;
 }
+
+// ── Public Board ───────────────────────────────────────
+
+export interface MarketState {
+  date: string;
+  label: string;
+  summary: string;
+}
+
+export interface MarketMetric {
+  name: string;
+  symbol: string;
+  value: number | null;
+  display: string | null;
+  change_pct: number | null;
+  status: "ok" | "unavailable" | "stale";
+}
+
+export interface PublicMarketBoardResponse {
+  market_state: MarketState;
+  macro: MarketMetric[];
+  assets: MarketMetric[];
+  custom: MarketMetric[];
+  as_of: string;
+  source: string;
+}

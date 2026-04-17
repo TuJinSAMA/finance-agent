@@ -4,7 +4,7 @@
     "cta": "申请体验",
     "signIn": "登录",
     "signUp": "注册",
-    "dashboard": "仪表盘",
+    "dashboard": "推荐页",
     "portfolio": "我的持仓",
     "reports": "研报"
   },
@@ -21,7 +21,7 @@
     "subtitle": "AI 多 Agent 投资决策助手",
     "description": "审阅建议，做出决策，仅此而已。",
     "ctaSignInDashboard": "登录并查看今日推荐",
-    "ctaDashboard": "进入 Dashboard",
+    "ctaDashboard": "进入推荐页",
     "ctaLearnMethod": "了解推荐方法",
     "ctaViewToday": "查看今日推荐",
     "heroSummary": {
@@ -74,7 +74,7 @@
       }
     },
     "dashboard": {
-      "title": "仪表盘",
+      "title": "推荐页",
       "totalAum": "总资产管理规模",
       "todaysPnL": "今日盈亏",
       "netExposure": "净敞口",
@@ -119,7 +119,7 @@
     "noHistory": "暂无历史推荐",
     "errorLoad": "加载失败，请稍后重试",
     "retry": "重试",
-    "recommendCount": "{count} 只推荐",
+    "recommendCount": "{count} 条推荐",
     "expand": "查看详情",
     "collapse": "收起",
     "score": "综合评分",
@@ -135,6 +135,16 @@
     "returnT5": "T+5 收益",
     "noReturn": "待更新",
     "recDate": "推荐日期"
+  },
+  "board": {
+    "title": "推荐页看板",
+    "loading": "看板加载中...",
+    "retry": "重试",
+    "asOf": "截至",
+    "source": "来源",
+    "loginCta": "登录查看推荐",
+    "unavailable": "看板暂不可用",
+    "noChange": "无变化"
   },
   "portfolio": {
     "title": "我的持仓",
@@ -197,7 +207,7 @@
       "1": {
         "time": "08:30",
         "title": "审阅建议",
-        "content": "Dashboard 上，3 条建议整齐排列。",
+        "content": "在推荐页里，3 条建议整齐排列。",
         "quote": "第一条：买入贵州茅台，置信度「高」。你点开决策链路——年报超预期、技术面突破、情绪面积极。组合影响？消费暴露升至 28%，接近阈值但未触发。",
         "action": "你想了 10 秒，点了「批准」。",
         "highlight": true
@@ -215,7 +225,7 @@
         "title": "盘中事件",
         "content": "一条推送弹了出来。",
         "quote": "CATL 发布储能新品，机构预期上调 2025 年出货量。新建议：加仓 CATL，置信度「中」。",
-        "action": "你切到 Dashboard，事件流和建议卡片已经在那里等你了。"
+        "action": "你切到推荐页，事件流和建议卡片已经在那里等你了。"
       },
       "4": {
         "time": "16:00",

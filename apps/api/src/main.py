@@ -17,7 +17,15 @@ from src.core.scheduler import (
     register_recommendation_jobs,
     scheduler,
 )
-from src.routers import admin, notifications, portfolio, recommendations, users, webhooks
+from src.routers import (
+    admin,
+    notifications,
+    portfolio,
+    public,
+    recommendations,
+    users,
+    webhooks,
+)
 
 logging.basicConfig(
     level=logging.DEBUG if settings.DEBUG else logging.INFO,
@@ -66,6 +74,7 @@ app.include_router(recommendations.router, prefix=settings.API_V1_PREFIX)
 app.include_router(portfolio.router, prefix=settings.API_V1_PREFIX)
 app.include_router(notifications.router, prefix=settings.API_V1_PREFIX)
 app.include_router(admin.router, prefix=settings.API_V1_PREFIX)
+app.include_router(public.router, prefix=settings.API_V1_PREFIX)
 app.include_router(webhooks.router, prefix="/api")
 
 
