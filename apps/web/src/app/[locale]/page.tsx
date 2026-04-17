@@ -15,6 +15,7 @@ import {
 import { useTranslations } from "next-intl";
 import { Show, UserButton, SignInButton } from "@clerk/nextjs";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { Link } from "../../../navigation";
 
 // Animation variants
 const fadeInUp = {
@@ -45,12 +46,12 @@ function CoffeeCupAnimation({ show }: { show: boolean }) {
           className="inline-flex items-center justify-center ml-4"
         >
           <div className="relative">
-            <Coffee className="w-10 h-10 text-green" />
+            <Coffee className="w-10 h-10 text-terracotta" />
             {/* Steam particles */}
             <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex gap-1">
-              <div className="w-1 h-3 bg-green/30 rounded-full animate-steam steam-1" />
-              <div className="w-1 h-3 bg-green/30 rounded-full animate-steam steam-2" />
-              <div className="w-1 h-3 bg-green/30 rounded-full animate-steam steam-3" />
+              <div className="w-1 h-3 bg-terracotta/30 rounded-full animate-steam steam-1" />
+              <div className="w-1 h-3 bg-terracotta/30 rounded-full animate-steam steam-2" />
+              <div className="w-1 h-3 bg-terracotta/30 rounded-full animate-steam steam-3" />
             </div>
           </div>
         </motion.div>
@@ -84,19 +85,27 @@ function Navigation() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-        <div className="text-dark-green font-medium text-xl tracking-tight">
+        <div className="text-ink font-serif font-medium text-xl tracking-tight">
           {t('brand')}
         </div>
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
-          <Show when="signed-out">
-            <SignInButton>
-              <button className="bg-green hover:bg-green-dark text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-                {t('nav.signIn')}
-              </button>
-            </SignInButton>
-          </Show>
-          <Show when="signed-in">
+          <Show
+            when="signed-in"
+            fallback={
+              <SignInButton>
+                <button className="bg-terracotta hover:bg-terracotta-dark text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+                  {t('nav.signIn')}
+                </button>
+              </SignInButton>
+            }
+          >
+            <Link
+              href="/dashboard"
+              className="bg-terracotta hover:bg-terracotta-dark text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              {t("nav.dashboard")}
+            </Link>
             <UserButton />
           </Show>
         </div>
@@ -149,21 +158,21 @@ function HeroSection() {
         {/* Main Headline */}
         <motion.h1
           variants={fadeInUp}
-          className="text-[clamp(2rem,6vw,4.5rem)] font-semibold leading-[1.2] text-charcoal mb-6"
+          className="text-[clamp(2rem,6vw,4.5rem)] font-serif font-medium leading-[1.2] text-ink mb-6"
         >
           <span className="block">{t('title.line1')}</span>
           <span className="block mt-2">
             {!textRevealed ? (
               <span className="relative inline-block">
                 {t('title.line2Before')}
-                <span className="relative mx-2 text-green">
+                <span className="relative mx-2 text-terracotta">
                   {t('title.pdfStack')}
                   {showStrikethrough && (
                     <motion.span
                       initial={{ width: 0 }}
                       animate={{ width: "100%" }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="absolute left-0 top-1/2 h-1 bg-green rounded-full"
+                      className="absolute left-0 top-1/2 h-1 bg-terracotta rounded-full"
                     />
                   )}
                 </span>
@@ -177,7 +186,7 @@ function HeroSection() {
                 className="inline-flex items-center flex-wrap justify-center gap-x-2"
               >
                 {t('title.line2After')}
-                <span className="text-ochre">{t('title.coffeeTime')}</span>
+                <span className="text-terracotta">{t('title.coffeeTime')}</span>
                 {t('title.startEnd')}
                 <CoffeeCupAnimation show={true} />
               </motion.span>
@@ -198,14 +207,51 @@ function HeroSection() {
         {/* CTA Button */}
         <motion.div
           variants={fadeInUp}
-          className="flex items-center justify-center"
+          className="flex items-center justify-center gap-3 flex-wrap"
         >
-          <SignInButton>
-            <button className="group bg-green hover:bg-green-dark text-white px-8 py-4 rounded-xl text-base font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl flex items-center gap-2">
-              {t('ctaPrimary')}
+          <Show
+            when="signed-in"
+            fallback={
+              <SignInButton>
+                <button className="group bg-terracotta hover:bg-terracotta-dark text-white px-8 py-4 rounded-xl text-base font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl flex items-center gap-2">
+                  {t("ctaSignInDashboard")}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </SignInButton>
+            }
+          >
+            <Link
+              href="/dashboard"
+              className="group bg-terracotta hover:bg-terracotta-dark text-white px-8 py-4 rounded-xl text-base font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl flex items-center gap-2"
+            >
+              {t("ctaDashboard")}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </SignInButton>
+            </Link>
+          </Show>
+          <a
+            href="#product"
+            className="bg-white hover:bg-cream-light text-charcoal px-8 py-4 rounded-xl text-base font-medium transition-all duration-200 border border-divider hover:-translate-y-0.5"
+          >
+            {t("ctaLearnMethod")}
+          </a>
+        </motion.div>
+
+        <motion.div
+          variants={fadeInUp}
+          className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto"
+        >
+          <div className="bg-white/80 border border-divider rounded-xl p-3 text-left">
+            <p className="text-xs text-warm-gray">{t("heroSummary.recommendations")}</p>
+            <p className="text-lg font-medium text-ink tabular-nums">5</p>
+          </div>
+          <div className="bg-white/80 border border-divider rounded-xl p-3 text-left">
+            <p className="text-xs text-warm-gray">{t("heroSummary.pending")}</p>
+            <p className="text-lg font-medium text-ink tabular-nums">2</p>
+          </div>
+          <div className="bg-white/80 border border-divider rounded-xl p-3 text-left">
+            <p className="text-xs text-warm-gray">{t("heroSummary.risk")}</p>
+            <p className="text-lg font-medium text-ink">Normal</p>
+          </div>
         </motion.div>
       </motion.div>
 
@@ -217,112 +263,8 @@ function HeroSection() {
         className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
       >
         <span className="text-sm text-warm-gray">{t('scrollHint')}</span>
-        <ArrowDown className="w-5 h-5 text-green animate-float" />
+        <ArrowDown className="w-5 h-5 text-terracotta animate-float" />
       </motion.div>
-    </section>
-  );
-}
-
-// Problem Statement Section
-function ProblemSection() {
-  const t = useTranslations('problem');
-  const brandT = useTranslations();
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  const phase = useTransform(scrollYProgress, [0, 0.25, 0.5, 0.75, 1], [0, 1, 2, 2, 2]);
-  const [currentPhase, setCurrentPhase] = useState(0);
-
-  useEffect(() => {
-    const unsubscribe = phase.on("change", (v) => {
-      setCurrentPhase(Math.min(Math.floor(v), 2));
-    });
-    return () => unsubscribe();
-  }, [phase]);
-
-  return (
-    <section ref={containerRef} className="relative h-[300vh] bg-dark-green">
-      <div className="sticky top-0 h-screen flex items-center justify-center px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <AnimatePresence mode="wait">
-            {currentPhase <= 2 && (
-              <motion.div
-                key={currentPhase}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-                className="space-y-4"
-              >
-                {currentPhase === 0 && (
-                  <>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0 }}
-                      className="text-[clamp(1.75rem,5vw,3.5rem)] font-medium text-white leading-tight"
-                    >
-                      {t('phase1.line1')}
-                    </motion.p>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.15 }}
-                      className="text-[clamp(1.75rem,5vw,3.5rem)] font-medium text-white leading-tight"
-                    >
-                      {t('phase1.line2')}
-                    </motion.p>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-[clamp(1.75rem,5vw,3.5rem)] font-medium text-white leading-tight"
-                    >
-                      {t('phase1.line3')}
-                      <span className="text-gold">{t('phase1.highlight')}</span>
-                      {t('phase1.line3End')}
-                    </motion.p>
-                  </>
-                )}
-                {currentPhase === 1 && (
-                  <>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0 }}
-                      className="text-[clamp(1.75rem,5vw,3.5rem)] font-medium text-white leading-tight"
-                    >
-                      {t('phase2.line1')}
-                    </motion.p>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.15 }}
-                      className="text-[clamp(1.75rem,5vw,3.5rem)] font-medium text-white leading-tight"
-                    >
-                      {t('phase2.line2')}
-                      <span className="text-ochre animate-glow">{t('phase2.highlight')}</span>
-                    </motion.p>
-                  </>
-                )}
-                {currentPhase === 2 && (
-                  <motion.p
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="text-[clamp(2rem,6vw,4rem)] font-semibold text-white leading-tight"
-                  >
-                    {t('phase3.prefix')} {brandT('brand')} {t('phase3.suffix')}
-                  </motion.p>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
     </section>
   );
 }
@@ -350,10 +292,10 @@ function DashboardMock({ highlight }: { highlight?: string }) {
       {/* Dashboard Content */}
       <div className="p-6 bg-cream/50">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-charcoal">{t('title')}</h2>
+          <h2 className="text-xl font-serif font-medium text-ink">{t('title')}</h2>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-green/10 flex items-center justify-center">
-              <span className="text-green text-xs font-medium">JL</span>
+            <div className="w-8 h-8 rounded-full bg-terracotta/10 flex items-center justify-center">
+              <span className="text-terracotta text-xs font-medium">JL</span>
             </div>
           </div>
         </div>
@@ -368,7 +310,7 @@ function DashboardMock({ highlight }: { highlight?: string }) {
           ].map((item, i) => (
             <div key={i} className="bg-white p-4 rounded-xl border border-divider/50">
               <p className="text-xs text-warm-gray mb-1">{item.label}</p>
-              <p className={`text-lg font-semibold ${item.sub?.includes("+") ? "text-green" : "text-charcoal"}`}>
+              <p className={`text-lg font-medium ${item.sub?.includes("+") ? "text-terracotta" : "text-ink"}`}>
                 {item.value}
               </p>
               {item.sub && <p className="text-xs text-warm-gray">{item.sub}</p>}
@@ -386,7 +328,7 @@ function DashboardMock({ highlight }: { highlight?: string }) {
                 <span
                   key={i}
                   className={`px-3 py-1 rounded-full text-xs ${
-                    i < 3 ? "bg-green/10 text-green" : i === 3 ? "bg-gold/10 text-gold" : "bg-red-100 text-red-600"
+                    i < 3 ? "bg-cream text-ink border border-divider/70" : i === 3 ? "bg-terracotta/10 text-terracotta border border-terracotta/20" : "bg-red-100 text-red-600"
                   }`}
                 >
                   {risk}
@@ -399,11 +341,11 @@ function DashboardMock({ highlight }: { highlight?: string }) {
         {/* Recommendations */}
         <div className={`transition-all duration-500 ${highlight === "recommendations" ? "opacity-100 ring-2 ring-green rounded-xl" : highlight ? "opacity-40" : "opacity-100"}`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-charcoal">
+            <h3 className="text-lg font-serif font-medium text-ink">
               {t('recommendations')}
               <span className="ml-2 text-sm text-warm-gray font-normal">· 5 total · 3 pending review</span>
             </h3>
-            <span className="text-xs text-green font-medium">{t('viewAll')}</span>
+            <span className="text-xs text-terracotta font-medium">{t('viewAll')}</span>
           </div>
 
           <div className="space-y-3">
@@ -413,12 +355,12 @@ function DashboardMock({ highlight }: { highlight?: string }) {
             ].map((stock, i) => (
               <div key={i} className="bg-white rounded-xl p-4 flex items-center justify-between border border-divider/50">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stock.trend === "up" ? "bg-red-50" : "bg-green/10"}`}>
-                    <TrendingUp className={`w-5 h-5 ${stock.trend === "up" ? "text-red-500" : "text-green"}`} />
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stock.trend === "up" ? "bg-red-50" : "bg-terracotta/10"}`}>
+                    <TrendingUp className={`w-5 h-5 ${stock.trend === "up" ? "text-red-500" : "text-terracotta"}`} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-charcoal">{stock.name}</span>
+                      <span className="font-medium text-ink">{stock.name}</span>
                       <span className="text-xs text-warm-gray bg-cream px-1.5 py-0.5 rounded">{stock.code}</span>
                     </div>
                     <p className="text-xs text-warm-gray italic">{stock.sector}</p>
@@ -427,15 +369,15 @@ function DashboardMock({ highlight }: { highlight?: string }) {
                 <div className="flex items-center gap-8">
                   <div className="text-center">
                     <p className="text-xs text-warm-gray mb-0.5">{t('action')}</p>
-                    <p className={`font-semibold ${stock.action === "BUY" ? "text-red-500" : "text-green"}`}>{stock.action}</p>
+                    <p className={`font-medium ${stock.action === "BUY" ? "text-red-500" : "text-terracotta"}`}>{stock.action}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xs text-warm-gray mb-0.5">{t('confidence')}</p>
-                    <p className="font-semibold text-charcoal">{stock.confidence}</p>
+                    <p className="font-medium text-ink">{stock.confidence}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xs text-warm-gray mb-0.5">{t('status')}</p>
-                    <span className="px-3 py-1 rounded-full text-xs bg-gold/10 text-gold border border-gold/20">
+                    <span className="px-3 py-1 rounded-full text-xs bg-terracotta/10 text-terracotta border border-terracotta/20">
                       {stock.status}
                     </span>
                   </div>
@@ -507,10 +449,10 @@ function ProductSection() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
               >
-                <span className="inline-block px-3 py-1 bg-green/10 text-green rounded-full text-sm font-medium mb-4">
+                <span className="inline-block px-3 py-1 bg-terracotta/10 text-terracotta rounded-full text-sm font-medium mb-4">
                   {phases[currentPhase].label}
                 </span>
-                <h2 className="text-3xl md:text-4xl font-semibold text-charcoal mb-6 leading-tight">
+                <h2 className="text-3xl md:text-4xl font-serif font-medium text-ink mb-6 leading-tight">
                   {phases[currentPhase].title}
                 </h2>
                 <p className="text-lg text-warm-gray leading-relaxed">
@@ -550,10 +492,10 @@ function FeatureCard({
       whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}
       className="bg-white rounded-2xl p-8 border border-divider/50 transition-shadow duration-200"
     >
-      <div className="w-14 h-14 rounded-xl bg-green/10 flex items-center justify-center mb-5">
-        <Icon className="w-7 h-7 text-green" />
+      <div className="w-14 h-14 rounded-xl bg-terracotta/10 flex items-center justify-center mb-5">
+        <Icon className="w-7 h-7 text-terracotta" />
       </div>
-      <h3 className="text-xl font-semibold text-charcoal mb-3">{t(titleKey)}</h3>
+      <h3 className="text-xl font-serif font-medium text-ink mb-3">{t(titleKey)}</h3>
       <p className="text-warm-gray leading-relaxed">{t(descriptionKey)}</p>
     </motion.div>
   );
@@ -641,7 +583,7 @@ function WorkflowSection() {
   ];
 
   return (
-    <section ref={containerRef} className="relative h-[400vh] bg-dark-green">
+    <section ref={containerRef} className="relative h-[260vh] bg-ink">
       <div className="sticky top-0 h-screen overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 h-full flex items-center">
           {/* Timeline */}
@@ -651,7 +593,7 @@ function WorkflowSection() {
               <motion.div
                 key={i}
                 className={`absolute w-3 h-3 rounded-full left-1/2 -translate-x-1/2 transition-colors duration-300 ${
-                  i <= currentPhase ? "bg-gold" : "bg-white/30"
+                  i <= currentPhase ? "bg-terracotta" : "bg-white/30"
                 }`}
                 style={{ top: `calc(25vh + ${(i / (timeline.length - 1)) * 50}vh)` }}
               />
@@ -670,8 +612,8 @@ function WorkflowSection() {
                 className="bg-white/5 border border-white/10 rounded-2xl p-8"
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <Clock className="w-5 h-5 text-gold" />
-                  <span className="text-gold font-medium">{timeline[currentPhase].time}</span>
+                  <Clock className="w-5 h-5 text-terracotta" />
+                  <span className="text-terracotta font-medium">{timeline[currentPhase].time}</span>
                   <span className="text-white/40">—</span>
                   <span className="text-white font-medium">{timeline[currentPhase].title}</span>
                 </div>
@@ -679,17 +621,17 @@ function WorkflowSection() {
                 <p className="text-cream-light/90 mb-4">{timeline[currentPhase].content}</p>
 
                 {timeline[currentPhase].quote && (
-                  <blockquote className="border-l-2 border-gold pl-4 my-6 text-cream-light/80 italic">
+                  <blockquote className="border-l-2 border-terracotta pl-4 my-6 text-cream-light/80 italic">
                     &ldquo;{timeline[currentPhase].quote}&rdquo;
                   </blockquote>
                 )}
 
                 {timeline[currentPhase].climax ? (
-                  <p className="text-ochre text-2xl font-bold">{timeline[currentPhase].action}</p>
+                  <p className="text-terracotta text-2xl font-bold">{timeline[currentPhase].action}</p>
                 ) : timeline[currentPhase].ending ? (
                   <p className="text-white text-3xl font-semibold text-center mt-8">{timeline[currentPhase].action}</p>
                 ) : timeline[currentPhase].highlight ? (
-                  <p className="text-gold text-xl font-semibold">{timeline[currentPhase].action}</p>
+                  <p className="text-terracotta text-xl font-medium">{timeline[currentPhase].action}</p>
                 ) : (
                   <p className="text-cream-light/70">{timeline[currentPhase].action}</p>
                 )}
@@ -734,7 +676,7 @@ function PhilosophySection() {
               transition={{ delay: i * 0.2, duration: 0.6 }}
               className="text-center"
             >
-              <h3 className="text-xl font-semibold text-green mb-4">{t(belief.titleKey)}</h3>
+              <h3 className="text-xl font-serif font-medium text-terracotta mb-4">{t(belief.titleKey)}</h3>
               <p className="text-charcoal/80 leading-[1.8] text-lg">{t(belief.contentKey)}</p>
               {i < beliefs.length - 1 && (
                 <div className="w-10 h-px bg-divider mx-auto mt-12" />
@@ -763,7 +705,7 @@ function CTASection() {
   const isInView = useInView(ref, { once: true, amount: 0.3 });
 
   return (
-    <section ref={ref} className="min-h-screen bg-dark-green flex flex-col items-center justify-center relative px-6 py-20">
+    <section ref={ref} className="min-h-screen bg-ink flex flex-col items-center justify-center relative px-6 py-20">
       <motion.div
         variants={staggerContainer}
         initial="hidden"
@@ -772,11 +714,11 @@ function CTASection() {
       >
         <motion.h2
           variants={fadeInUp}
-          className="text-[clamp(2.5rem,6vw,4rem)] font-semibold text-white leading-tight mb-6"
+          className="text-[clamp(2.5rem,6vw,4rem)] font-serif font-medium text-white leading-tight mb-6"
         >
           {t('title.line1')}
           <br />
-          <span className="text-gold">{t('title.line2')}</span>
+          <span className="text-terracotta">{t('title.line2')}</span>
         </motion.h2>
 
         <motion.p variants={fadeInUp} className="text-cream-light text-lg mb-10">
@@ -785,7 +727,7 @@ function CTASection() {
 
         <motion.div variants={fadeInUp}>
           <SignInButton>
-            <button className="group bg-white hover:bg-cream text-dark-green px-10 py-5 rounded-2xl text-lg font-medium transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-gold/20">
+            <button className="group bg-white hover:bg-cream text-ink px-10 py-5 rounded-2xl text-lg font-medium transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-terracotta/20">
               {t('button')}
             </button>
           </SignInButton>
@@ -814,7 +756,6 @@ export default function Home() {
     <main className="overflow-x-clip">
       <Navigation />
       <HeroSection />
-      <ProblemSection />
       <ProductSection />
       <FeaturesSection />
       <WorkflowSection />

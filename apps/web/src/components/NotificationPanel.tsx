@@ -38,8 +38,8 @@ function formatNotificationTime(isoString: string) {
 function NotificationIcon({ type }: { type: string }) {
   if (type === "recommendation") {
     return (
-      <div className="w-8 h-8 rounded-full bg-ochre/10 flex items-center justify-center shrink-0">
-        <TrendingUp className="w-4 h-4 text-ochre" />
+      <div className="w-8 h-8 rounded-full bg-terracotta/10 flex items-center justify-center shrink-0">
+        <TrendingUp className="w-4 h-4 text-terracotta" />
       </div>
     );
   }
@@ -72,8 +72,8 @@ function NotificationItem({
 
   return (
     <div
-      className={`px-5 py-4 border-b border-cream-dark transition-colors ${
-        notification.is_read ? "bg-white" : "bg-ochre/[0.04]"
+      className={`px-5 py-4 border-b border-divider transition-colors ${
+        notification.is_read ? "bg-white" : "bg-terracotta/[0.04]"
       }`}
     >
       <div className="flex gap-3">
@@ -84,7 +84,7 @@ function NotificationItem({
               className={`text-sm leading-snug ${
                 notification.is_read
                   ? "font-medium text-warm-gray"
-                  : "font-semibold text-charcoal"
+                  : "font-medium text-ink"
               }`}
             >
               {notification.title}
@@ -100,7 +100,7 @@ function NotificationItem({
           )}
           <button
             onClick={handleClick}
-            className="flex items-center gap-0.5 text-xs font-medium text-ochre hover:text-ochre/80 mt-2 transition-colors"
+            className="flex items-center gap-0.5 text-xs font-medium text-terracotta hover:text-terracotta/80 mt-2 transition-colors"
           >
             {notification.is_read ? t("viewDetails") : t("review")}
             <ChevronRight className="w-3 h-3" />
@@ -212,18 +212,18 @@ export default function NotificationPanel({
       {/* Panel */}
       <div
         ref={panelRef}
-        className="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl z-50 flex flex-col animate-[slideInRight_0.2s_ease-out]"
+        className="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl z-50 flex flex-col animate-[slideInRight_0.2s_ease-out] border-l border-divider"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
-          <h2 className="text-lg font-semibold text-charcoal">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-divider">
+          <h2 className="text-lg font-serif font-medium text-ink">
             {t("title")}
           </h2>
           <div className="flex items-center gap-3">
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs font-medium text-green hover:text-green-dark transition-colors"
+                className="text-xs font-medium text-terracotta hover:text-terracotta-dark transition-colors"
               >
                 {t("markAllRead")}
               </button>
@@ -241,7 +241,7 @@ export default function NotificationPanel({
         <div className="flex-1 overflow-y-auto">
           {loading && (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 text-green animate-spin" />
+              <Loader2 className="w-6 h-6 text-terracotta animate-spin" />
             </div>
           )}
 

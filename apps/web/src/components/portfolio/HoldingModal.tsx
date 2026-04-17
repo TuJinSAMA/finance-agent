@@ -107,12 +107,12 @@ export default function HoldingModal({
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
         <div
-          className="bg-white w-full md:w-[480px] md:rounded-xl rounded-t-2xl shadow-xl max-h-[90vh] overflow-y-auto"
+          className="bg-white w-full md:w-[480px] md:rounded-xl rounded-t-2xl shadow-xl max-h-[90vh] overflow-y-auto border border-divider"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-cream-dark">
-            <h2 className="text-lg font-semibold text-charcoal">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-divider">
+            <h2 className="text-lg font-serif font-medium text-ink">
               {isEditing ? t("editHolding") : t("addHolding")}
             </h2>
             <button
@@ -127,7 +127,7 @@ export default function HoldingModal({
           <form onSubmit={handleSubmit} className="p-5 space-y-4">
             {/* Stock Code */}
             <div>
-              <label className="block text-sm font-medium text-charcoal mb-1.5">
+              <label className="block text-sm font-medium text-ink mb-1.5">
                 {t("stockCode")}
               </label>
               <input
@@ -136,13 +136,13 @@ export default function HoldingModal({
                 onChange={(e) => setStockCode(e.target.value)}
                 placeholder={t("stockCodePlaceholder")}
                 disabled={isEditing}
-                className="w-full px-3 py-2.5 border border-cream-dark rounded-lg text-sm text-charcoal bg-white placeholder:text-warm-gray/60 focus:outline-none focus:border-green focus:ring-1 focus:ring-green/20 disabled:bg-cream/50 disabled:text-warm-gray transition-colors"
+                className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm text-ink bg-white placeholder:text-warm-gray/60 focus:outline-none focus:border-terracotta focus:ring-1 focus:ring-terracotta/20 disabled:bg-cream/50 disabled:text-warm-gray transition-colors"
               />
             </div>
 
             {/* Quantity */}
             <div>
-              <label className="block text-sm font-medium text-charcoal mb-1.5">
+              <label className="block text-sm font-medium text-ink mb-1.5">
                 {t("quantity")}
               </label>
               <input
@@ -152,13 +152,13 @@ export default function HoldingModal({
                 min="1"
                 step="1"
                 placeholder="100"
-                className="w-full px-3 py-2.5 border border-cream-dark rounded-lg text-sm text-charcoal bg-white placeholder:text-warm-gray/60 focus:outline-none focus:border-green focus:ring-1 focus:ring-green/20 tabular-nums transition-colors"
+                className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm text-ink bg-white placeholder:text-warm-gray/60 focus:outline-none focus:border-terracotta focus:ring-1 focus:ring-terracotta/20 tabular-nums transition-colors"
               />
             </div>
 
             {/* Avg Cost */}
             <div>
-              <label className="block text-sm font-medium text-charcoal mb-1.5">
+              <label className="block text-sm font-medium text-ink mb-1.5">
                 {t("avgCost")}
               </label>
               <input
@@ -168,13 +168,13 @@ export default function HoldingModal({
                 min="0.01"
                 step="0.01"
                 placeholder="0.00"
-                className="w-full px-3 py-2.5 border border-cream-dark rounded-lg text-sm text-charcoal bg-white placeholder:text-warm-gray/60 focus:outline-none focus:border-green focus:ring-1 focus:ring-green/20 tabular-nums transition-colors"
+                className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm text-ink bg-white placeholder:text-warm-gray/60 focus:outline-none focus:border-terracotta focus:ring-1 focus:ring-terracotta/20 tabular-nums transition-colors"
               />
             </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-charcoal mb-1.5">
+              <label className="block text-sm font-medium text-ink mb-1.5">
                 {t("notes")}
               </label>
               <textarea
@@ -182,7 +182,7 @@ export default function HoldingModal({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t("notesPlaceholder")}
                 rows={2}
-                className="w-full px-3 py-2.5 border border-cream-dark rounded-lg text-sm text-charcoal bg-white placeholder:text-warm-gray/60 focus:outline-none focus:border-green focus:ring-1 focus:ring-green/20 resize-none transition-colors"
+                className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm text-ink bg-white placeholder:text-warm-gray/60 focus:outline-none focus:border-terracotta focus:ring-1 focus:ring-terracotta/20 resize-none transition-colors"
               />
             </div>
 
@@ -198,14 +198,14 @@ export default function HoldingModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-warm-gray border border-cream-dark rounded-lg hover:bg-cream transition-colors"
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-warm-gray border border-divider rounded-lg hover:bg-cream transition-colors"
               >
                 {t("cancel")}
               </button>
               <button
                 type="submit"
                 disabled={!isValid || submitting}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-green rounded-lg hover:bg-green-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-terracotta rounded-lg hover:bg-terracotta-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {t("save")}

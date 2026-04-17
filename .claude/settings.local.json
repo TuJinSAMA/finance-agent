@@ -4,7 +4,15 @@
       "Bash(pnpm lint)",
       "mcp__playwright",
       "Bash(pnpm add next-intl)",
-      "Bash(pnpm build)"
+      "Bash(pnpm build)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(find /Users/ricky/Documents/BaixingAI/finance-agent -name *.log -o -name *logs* -type d)",
+      "WebSearch",
+      "Skill(commit-commands:commit-push-pr)",
+      "Skill(commit-commands:commit-push-pr:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

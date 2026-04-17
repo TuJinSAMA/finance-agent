@@ -77,7 +77,7 @@ export default function PortfolioPage() {
   if (portfolioLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="w-8 h-8 text-green animate-spin" />
+        <Loader2 className="w-8 h-8 text-terracotta animate-spin" />
         <p className="text-warm-gray text-sm">{t("loading")}</p>
       </div>
     );
@@ -90,7 +90,7 @@ export default function PortfolioPage() {
         <p className="text-warm-gray text-sm">{t("errorLoad")}</p>
         <button
           onClick={refetchPortfolio}
-          className="text-sm font-medium text-green hover:text-green-dark transition-colors"
+          className="text-sm font-medium text-terracotta hover:text-terracotta-dark transition-colors"
         >
           {t("retry")}
         </button>
@@ -111,10 +111,10 @@ export default function PortfolioPage() {
       {/* Holdings section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-charcoal">{t("stock")}</h2>
+          <h2 className="text-lg font-serif font-medium text-ink">{t("stock")}</h2>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green rounded-lg hover:bg-green-dark transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-terracotta rounded-lg hover:bg-terracotta-dark transition-colors"
           >
             <Plus className="w-4 h-4" />
             {t("addHolding")}
@@ -150,17 +150,17 @@ export default function PortfolioPage() {
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
-              className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4"
+              className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4 border border-divider"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-semibold text-charcoal">
+              <h3 className="text-lg font-serif font-medium text-ink">
                 {t("confirmDeleteTitle")}
               </h3>
               <p className="text-sm text-warm-gray">{t("confirmDelete")}</p>
               <div className="flex items-center gap-3 pt-2">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-warm-gray border border-cream-dark rounded-lg hover:bg-cream transition-colors"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-warm-gray border border-divider rounded-lg hover:bg-cream transition-colors"
                 >
                   {t("cancel")}
                 </button>

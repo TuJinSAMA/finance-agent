@@ -20,6 +20,15 @@
     },
     "subtitle": "AI 多 Agent 投资决策助手",
     "description": "审阅建议，做出决策，仅此而已。",
+    "ctaSignInDashboard": "登录并查看今日推荐",
+    "ctaDashboard": "进入 Dashboard",
+    "ctaLearnMethod": "了解推荐方法",
+    "ctaViewToday": "查看今日推荐",
+    "heroSummary": {
+      "recommendations": "今日推荐",
+      "pending": "待审阅",
+      "risk": "风险状态"
+    },
     "ctaPrimary": "立即开始",
     "scrollHint": "向下滚动"
   },

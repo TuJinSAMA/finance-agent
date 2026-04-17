@@ -18,7 +18,7 @@ export default function LanguageSwitcher() {
         onClick={() => switchLocale('zh')}
         className={`px-2.5 py-1.5 transition-colors duration-200 ${
           locale === 'zh'
-            ? 'bg-green/10 text-green font-medium'
+            ? 'bg-terracotta/10 text-terracotta font-medium'
             : 'text-warm-gray hover:text-charcoal hover:bg-cream'
         }`}
         aria-label="Switch to Chinese"
@@ -30,7 +30,7 @@ export default function LanguageSwitcher() {
         onClick={() => switchLocale('en')}
         className={`px-2.5 py-1.5 transition-colors duration-200 ${
           locale === 'en'
-            ? 'bg-green/10 text-green font-medium'
+            ? 'bg-terracotta/10 text-terracotta font-medium'
             : 'text-warm-gray hover:text-charcoal hover:bg-cream'
         }`}
         aria-label="Switch to English"

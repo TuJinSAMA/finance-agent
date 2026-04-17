@@ -20,6 +20,15 @@
     },
     "subtitle": "AI Multi-Agent Investment Decision Assistant",
     "description": "Review recommendations, make decisions. That's all.",
+    "ctaSignInDashboard": "Sign in to view today's picks",
+    "ctaDashboard": "Go to Dashboard",
+    "ctaLearnMethod": "See our methodology",
+    "ctaViewToday": "View today's picks",
+    "heroSummary": {
+      "recommendations": "Today's recommendations",
+      "pending": "Pending review",
+      "risk": "Risk status"
+    },
     "ctaPrimary": "Getting Started",
     "scrollHint": "Scroll Down"
   },

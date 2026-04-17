@@ -39,7 +39,7 @@ function formatReturn(val: number | null, t: ReturnType<typeof useTranslations>)
   const isPositive = n > 0;
   const color = isPositive ? "text-accent-red" : n < 0 ? "text-accent-green" : "text-charcoal";
   return (
-    <span className={`font-semibold tabular-nums ${color}`}>
+    <span className={`font-medium tabular-nums ${color}`}>
       {isPositive ? "+" : ""}{pct}%
     </span>
   );
@@ -58,7 +58,7 @@ function formatPrice(val: number | null) {
 function LoadingState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-3">
-      <Loader2 className="w-8 h-8 text-green animate-spin" />
+      <Loader2 className="w-8 h-8 text-terracotta animate-spin" />
       <p className="text-warm-gray text-sm">{message}</p>
     </div>
   );
@@ -78,7 +78,7 @@ function ErrorState({
       <p className="text-warm-gray text-sm">{message}</p>
       <button
         onClick={onRetry}
-        className="text-sm font-medium text-green hover:text-green-dark transition-colors"
+        className="text-sm font-medium text-terracotta hover:text-terracotta-dark transition-colors"
       >
         {t("retry")}
       </button>
@@ -105,10 +105,10 @@ function ScoreBadge({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cream border border-cream-dark">
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cream border border-divider">
       <Icon className="w-3.5 h-3.5 text-warm-gray" />
       <span className="text-xs text-warm-gray">{label}</span>
-      <span className="text-sm font-bold text-charcoal tabular-nums">{value}</span>
+      <span className="text-sm font-medium text-ink tabular-nums">{value}</span>
     </div>
   );
 }
@@ -118,7 +118,7 @@ function RecommendationCard({ rec }: { rec: RecommendationRead }) {
   const t = useTranslations("dashboard");
 
   return (
-    <div className="bg-white border border-cream-dark rounded-xl shadow-sm overflow-hidden transition-all">
+    <div className="bg-white border border-divider rounded-xl shadow-sm overflow-hidden transition-all">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left p-4 md:p-6 hover:bg-cream/30 transition-colors"
@@ -126,15 +126,15 @@ function RecommendationCard({ rec }: { rec: RecommendationRead }) {
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           {/* Left: Rank + Stock info */}
           <div className="flex items-start gap-4 flex-1 min-w-0">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-accent-green/10 flex items-center justify-center text-accent-green font-bold text-lg shrink-0">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-terracotta/10 flex items-center justify-center text-terracotta font-medium text-lg shrink-0">
               #{rec.rank ?? "—"}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="text-base md:text-lg font-bold text-charcoal truncate">
+                <h4 className="text-base md:text-lg font-serif font-medium text-ink truncate">
                   {rec.stock?.name ?? `Stock #${rec.stock_id}`}
                 </h4>
-                <span className="text-xs font-medium text-warm-gray bg-cream px-2 py-0.5 rounded border border-cream-dark whitespace-nowrap">
+                <span className="text-xs font-medium text-warm-gray bg-cream px-2 py-0.5 rounded border border-divider whitespace-nowrap">
                   {rec.stock?.code ?? ""}
                 </span>
               </div>
@@ -170,7 +170,7 @@ function RecommendationCard({ rec }: { rec: RecommendationRead }) {
             </div>
             <div className="text-right hidden sm:block">
               <p className="text-xs text-warm-gray">{t("priceAtRec")}</p>
-              <p className="text-base font-semibold text-charcoal tabular-nums">
+              <p className="text-base font-medium text-ink tabular-nums">
                 {formatPrice(rec.price_at_rec)}
               </p>
             </div>
@@ -187,12 +187,12 @@ function RecommendationCard({ rec }: { rec: RecommendationRead }) {
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="px-4 md:px-6 pb-4 md:pb-6 border-t border-cream-dark">
+        <div className="px-4 md:px-6 pb-4 md:pb-6 border-t border-divider">
           <div className="pt-4 space-y-4">
             {/* Price at rec for mobile */}
             <div className="sm:hidden flex items-center gap-4">
               <span className="text-xs text-warm-gray">{t("priceAtRec")}</span>
-              <span className="text-sm font-semibold text-charcoal tabular-nums">
+              <span className="text-sm font-medium text-ink tabular-nums">
                 {formatPrice(rec.price_at_rec)}
               </span>
             </div>
@@ -211,7 +211,7 @@ function RecommendationCard({ rec }: { rec: RecommendationRead }) {
 
             {/* Detailed reason */}
             {rec.reason_detail && (
-              <div className="bg-cream/50 border border-cream-dark rounded-lg p-4">
+              <div className="bg-cream/50 border border-divider rounded-lg p-4">
                 <p className="text-sm text-charcoal/90 whitespace-pre-wrap leading-relaxed">
                   {rec.reason_detail}
                 </p>
@@ -236,7 +236,7 @@ function HistorySection({
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-8 justify-center">
-        <Loader2 className="w-5 h-5 text-green animate-spin" />
+        <Loader2 className="w-5 h-5 text-terracotta animate-spin" />
         <span className="text-sm text-warm-gray">{t("loading")}</span>
       </div>
     );
@@ -253,8 +253,8 @@ function HistorySection({
   return (
     <div className="space-y-4">
       {data.map((dayGroup) => (
-        <div key={dayGroup.rec_date} className="bg-white border border-cream-dark rounded-xl overflow-hidden">
-          <div className="px-4 md:px-6 py-3 border-b border-cream-dark bg-cream/30 flex items-center gap-2">
+        <div key={dayGroup.rec_date} className="bg-white border border-divider rounded-xl overflow-hidden">
+          <div className="px-4 md:px-6 py-3 border-b border-divider bg-cream/30 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-warm-gray" />
             <span className="text-sm font-medium text-charcoal">
               {formatDate(dayGroup.rec_date)}
@@ -277,10 +277,10 @@ function HistorySection({
                   <th className="text-right px-6 py-3 font-medium">{t("returnT5")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-cream-dark">
+              <tbody className="divide-y divide-divider">
                 {dayGroup.recommendations.map((rec) => (
                   <tr key={rec.id} className="hover:bg-cream/30 transition-colors">
-                    <td className="px-6 py-3 font-bold text-charcoal">#{rec.rank ?? "—"}</td>
+                    <td className="px-6 py-3 font-medium text-ink">#{rec.rank ?? "—"}</td>
                     <td className="px-6 py-3">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-charcoal">
@@ -289,7 +289,7 @@ function HistorySection({
                         <span className="text-xs text-warm-gray">{rec.stock?.code}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-3 text-right font-semibold text-charcoal tabular-nums">
+                    <td className="px-6 py-3 text-right font-medium text-ink tabular-nums">
                       {formatScore(rec.final_score)}
                     </td>
                     <td className="px-6 py-3 text-right tabular-nums">
@@ -312,12 +312,12 @@ function HistorySection({
             {dayGroup.recommendations.map((rec) => (
               <div key={rec.id} className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-charcoal">#{rec.rank}</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-ink">#{rec.rank}</span>
                     <span className="font-medium text-charcoal">{rec.stock?.name}</span>
                     <span className="text-xs text-warm-gray">{rec.stock?.code}</span>
                   </div>
-                  <span className="text-sm font-semibold tabular-nums">{formatScore(rec.final_score)}</span>
+                  <span className="text-sm font-medium tabular-nums">{formatScore(rec.final_score)}</span>
                 </div>
                 <div className="flex items-center gap-4 text-sm">
                   <div>
@@ -375,7 +375,7 @@ export default function DashboardPage() {
             refetchToday();
             refetchHistory();
           }}
-          className="flex items-center gap-2 text-sm font-medium text-green hover:text-green-dark transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 text-sm font-medium text-terracotta hover:text-terracotta-dark transition-colors self-start sm:self-auto"
         >
           <RefreshCw className="w-4 h-4" />
           {t("retry")}
@@ -385,8 +385,8 @@ export default function DashboardPage() {
       {/* Today's Recommendations */}
       <section className="space-y-4">
         <div className="flex items-center gap-3">
-          <TrendingUp className="w-5 h-5 text-green" />
-          <h2 className="text-xl md:text-2xl font-semibold text-charcoal">
+          <TrendingUp className="w-5 h-5 text-terracotta" />
+          <h2 className="text-xl md:text-2xl font-serif font-medium text-ink">
             {t("title")}
           </h2>
           {todayData && (
@@ -417,9 +417,9 @@ export default function DashboardPage() {
 
       {/* History */}
       <section className="space-y-4">
-        <div className="flex items-center gap-3 border-t border-cream-dark pt-6">
+        <div className="flex items-center gap-3 border-t border-divider pt-6">
           <Clock className="w-5 h-5 text-warm-gray" />
-          <h2 className="text-lg md:text-xl font-semibold text-charcoal">
+          <h2 className="text-lg md:text-xl font-serif font-medium text-ink">
             {t("historyTitle")}
           </h2>
         </div>

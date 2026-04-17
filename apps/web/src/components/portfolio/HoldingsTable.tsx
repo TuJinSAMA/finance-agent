@@ -23,7 +23,7 @@ function profitColor(val: number | null) {
   if (val === null || val === undefined) return "text-charcoal";
   if (val > 0) return "text-accent-red";
   if (val < 0) return "text-accent-green";
-  return "text-charcoal";
+    return "text-ink";
 }
 
 interface Props {
@@ -37,9 +37,9 @@ export default function HoldingsTable({ holdings, onEdit, onDelete }: Props) {
 
   if (holdings.length === 0) {
     return (
-      <div className="bg-white border border-cream-dark rounded-xl p-12 flex flex-col items-center justify-center gap-3">
+      <div className="bg-white border border-divider rounded-xl p-12 flex flex-col items-center justify-center gap-3">
         <Package className="w-12 h-12 text-cream-dark" />
-        <p className="text-lg font-medium text-charcoal">{t("noHoldings")}</p>
+        <p className="text-lg font-serif font-medium text-ink">{t("noHoldings")}</p>
         <p className="text-sm text-warm-gray text-center max-w-xs">
           {t("noHoldingsDesc")}
         </p>
@@ -50,11 +50,11 @@ export default function HoldingsTable({ holdings, onEdit, onDelete }: Props) {
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden md:block bg-white border border-cream-dark rounded-xl overflow-hidden shadow-sm">
+      <div className="hidden md:block bg-white border border-divider rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-warm-gray uppercase tracking-wider border-b border-cream-dark bg-cream/30">
+              <tr className="text-xs text-warm-gray uppercase tracking-wider border-b border-divider bg-cream/30">
                 <th className="text-left px-6 py-3 font-medium">{t("stock")}</th>
                 <th className="text-right px-4 py-3 font-medium">{t("quantity")}</th>
                 <th className="text-right px-4 py-3 font-medium">{t("avgCost")}</th>
@@ -65,12 +65,12 @@ export default function HoldingsTable({ holdings, onEdit, onDelete }: Props) {
                 <th className="text-center px-4 py-3 font-medium">{t("actions")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-cream-dark">
+            <tbody className="divide-y divide-divider">
               {holdings.map((h) => (
                 <tr key={h.id} className="hover:bg-cream/30 transition-colors">
                   <td className="px-6 py-4">
                     <div>
-                      <span className="font-medium text-charcoal">
+                      <span className="font-medium text-ink">
                         {h.stock?.name ?? "—"}
                       </span>
                       <span className="text-xs text-warm-gray ml-2">
@@ -83,33 +83,33 @@ export default function HoldingsTable({ holdings, onEdit, onDelete }: Props) {
                       </p>
                     )}
                   </td>
-                  <td className="px-4 py-4 text-right tabular-nums text-charcoal">
+                  <td className="px-4 py-4 text-right tabular-nums text-ink">
                     {h.quantity.toLocaleString()}
                   </td>
-                  <td className="px-4 py-4 text-right tabular-nums text-charcoal">
+                  <td className="px-4 py-4 text-right tabular-nums text-ink">
                     ¥{Number(h.avg_cost).toFixed(2)}
                   </td>
-                  <td className="px-4 py-4 text-right tabular-nums text-charcoal">
+                  <td className="px-4 py-4 text-right tabular-nums text-ink">
                     {h.current_price !== null
                       ? `¥${Number(h.current_price).toFixed(2)}`
                       : "—"}
                   </td>
-                  <td className="px-4 py-4 text-right tabular-nums text-charcoal font-medium">
+                  <td className="px-4 py-4 text-right tabular-nums text-ink font-medium">
                     {formatCurrency(h.market_value)}
                   </td>
-                  <td className={`px-4 py-4 text-right tabular-nums font-semibold ${profitColor(h.profit_loss)}`}>
+                  <td className={`px-4 py-4 text-right tabular-nums font-medium ${profitColor(h.profit_loss)}`}>
                     {h.profit_loss !== null
                       ? `${h.profit_loss > 0 ? "+" : ""}${formatCurrency(h.profit_loss)}`
                       : "—"}
                   </td>
-                  <td className={`px-4 py-4 text-right tabular-nums font-semibold ${profitColor(h.profit_pct)}`}>
+                  <td className={`px-4 py-4 text-right tabular-nums font-medium ${profitColor(h.profit_pct)}`}>
                     {formatPct(h.profit_pct)}
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => onEdit(h)}
-                        className="p-1.5 rounded-lg hover:bg-cream transition-colors text-warm-gray hover:text-charcoal"
+                        className="p-1.5 rounded-lg hover:bg-cream transition-colors text-warm-gray hover:text-ink"
                         title={t("editHolding")}
                       >
                         <Pencil className="w-4 h-4" />
@@ -135,12 +135,12 @@ export default function HoldingsTable({ holdings, onEdit, onDelete }: Props) {
         {holdings.map((h) => (
           <div
             key={h.id}
-            className="bg-white border border-cream-dark rounded-xl p-4 shadow-sm space-y-3"
+            className="bg-white border border-divider rounded-xl p-4 shadow-sm space-y-3"
           >
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-charcoal">
+                  <span className="font-medium text-ink">
                     {h.stock?.name ?? "—"}
                   </span>
                   <span className="text-xs text-warm-gray">{h.stock?.code}</span>
@@ -170,35 +170,35 @@ export default function HoldingsTable({ holdings, onEdit, onDelete }: Props) {
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <div>
                 <span className="text-xs text-warm-gray">{t("quantity")}</span>
-                <p className="tabular-nums text-charcoal">{h.quantity.toLocaleString()} {t("holdingUnit")}</p>
+                <p className="tabular-nums text-ink">{h.quantity.toLocaleString()} {t("holdingUnit")}</p>
               </div>
               <div>
                 <span className="text-xs text-warm-gray">{t("avgCost")}</span>
-                <p className="tabular-nums text-charcoal">¥{Number(h.avg_cost).toFixed(2)}</p>
+                <p className="tabular-nums text-ink">¥{Number(h.avg_cost).toFixed(2)}</p>
               </div>
               <div>
                 <span className="text-xs text-warm-gray">{t("currentPrice")}</span>
-                <p className="tabular-nums text-charcoal">
+                <p className="tabular-nums text-ink">
                   {h.current_price !== null ? `¥${Number(h.current_price).toFixed(2)}` : "—"}
                 </p>
               </div>
               <div>
                 <span className="text-xs text-warm-gray">{t("marketValue")}</span>
-                <p className="tabular-nums text-charcoal font-medium">
+                <p className="tabular-nums text-ink font-medium">
                   {formatCurrency(h.market_value)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-cream-dark">
+            <div className="flex items-center justify-between pt-2 border-t border-divider">
               <span className="text-xs text-warm-gray">{t("profitLoss")}</span>
               <div className="flex items-center gap-3">
-                <span className={`font-semibold tabular-nums ${profitColor(h.profit_loss)}`}>
+                <span className={`font-medium tabular-nums ${profitColor(h.profit_loss)}`}>
                   {h.profit_loss !== null
                     ? `${h.profit_loss > 0 ? "+" : ""}${formatCurrency(h.profit_loss)}`
                     : "—"}
                 </span>
-                <span className={`text-sm font-semibold tabular-nums ${profitColor(h.profit_pct)}`}>
+                <span className={`text-sm font-medium tabular-nums ${profitColor(h.profit_pct)}`}>
                   {formatPct(h.profit_pct)}
                 </span>
               </div>

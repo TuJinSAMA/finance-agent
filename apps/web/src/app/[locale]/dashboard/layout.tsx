@@ -29,7 +29,7 @@ function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex w-[72px] bg-forest flex-col items-center py-6 justify-between shrink-0 z-50">
+    <aside className="hidden md:flex w-[72px] bg-ink flex-col items-center py-6 justify-between shrink-0 z-50">
       <div className="flex flex-col items-center gap-8 w-full">
         <Link
           href="/dashboard"
@@ -53,7 +53,7 @@ function Sidebar() {
                 className="relative w-full flex justify-center group cursor-pointer"
               >
                 {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent-green rounded-r-full" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-terracotta rounded-r-full" />
                 )}
                 <item.icon
                   className={`w-7 h-7 transition-opacity ${
@@ -76,7 +76,7 @@ function BottomNav() {
   const t = useTranslations("nav");
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-cream-dark flex items-center justify-around h-14 safe-area-pb">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-divider flex items-center justify-around h-14 safe-area-pb">
       {navItems.map((item) => {
         const isActive =
           item.href === "/dashboard"
@@ -87,7 +87,7 @@ function BottomNav() {
             key={item.href}
             href={item.href}
             className={`flex flex-col items-center gap-0.5 py-1 px-3 ${
-              isActive ? "text-green" : "text-warm-gray"
+              isActive ? "text-terracotta" : "text-warm-gray"
             }`}
           >
             <item.icon className="w-5 h-5" />
@@ -114,8 +114,8 @@ function TopBar({
     : "U";
 
   return (
-    <header className="h-14 bg-cream border-b border-cream-dark flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
-      <h1 className="text-lg md:text-xl font-semibold text-charcoal">{title}</h1>
+    <header className="h-14 bg-cream border-b border-divider flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
+      <h1 className="text-lg md:text-xl font-serif font-medium text-ink">{title}</h1>
       <div className="flex items-center gap-4 md:gap-6">
         <div className="hidden sm:block">
           <LanguageSwitcher />
@@ -126,13 +126,13 @@ function TopBar({
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-ochre text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+            <span className="absolute -top-1 -right-1 bg-terracotta text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </button>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-green rounded-full flex items-center justify-center text-cream text-xs font-bold">
+          <div className="w-8 h-8 bg-terracotta rounded-full flex items-center justify-center text-cream text-xs font-bold">
             {initials}
           </div>
         </div>

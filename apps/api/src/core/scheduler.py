@@ -60,75 +60,83 @@ def register_data_agent_jobs():
         weekly_sync_job,
     )
 
-    if not scheduler.get_job("daily_quotes"):
-        scheduler.add_job(
-            daily_quotes_job,
-            "cron",
-            hour=15,
-            minute=30,
-            day_of_week="mon-fri",
-            id="daily_quotes",
-            replace_existing=True,
-        )
-        logger.info("Registered daily_quotes job (weekdays 15:30)")
+    # NOTE: Jobs temporarily disabled
+    # if not scheduler.get_job("daily_quotes"):
+    #     scheduler.add_job(
+    #         daily_quotes_job,
+    #         "cron",
+    #         hour=15,
+    #         minute=30,
+    #         day_of_week="mon-fri",
+    #         id="daily_quotes",
+    #         replace_existing=True,
+    #     )
+    #     logger.info("Registered daily_quotes job (weekdays 15:30)")
+    logger.info("daily_quotes job is DISABLED")
 
-    if not scheduler.get_job("technical_indicators"):
-        scheduler.add_job(
-            technical_indicators_job,
-            "cron",
-            hour=16,
-            minute=30,
-            day_of_week="mon-fri",
-            id="technical_indicators",
-            replace_existing=True,
-        )
-        logger.info("Registered technical_indicators job (weekdays 16:30)")
+    # if not scheduler.get_job("technical_indicators"):
+    #     scheduler.add_job(
+    #         technical_indicators_job,
+    #         "cron",
+    #         hour=16,
+    #         minute=30,
+    #         day_of_week="mon-fri",
+    #         id="technical_indicators",
+    #         replace_existing=True,
+    #     )
+    #     logger.info("Registered technical_indicators job (weekdays 16:30)")
+    logger.info("technical_indicators job is DISABLED")
 
-    if not scheduler.get_job("weekly_stock_sync"):
-        scheduler.add_job(
-            weekly_sync_job,
-            "cron",
-            hour=17,
-            minute=0,
-            day_of_week="mon",
-            id="weekly_stock_sync",
-            replace_existing=True,
-        )
-        logger.info("Registered weekly_stock_sync job (Monday 17:00)")
+    # if not scheduler.get_job("weekly_stock_sync"):
+    #     scheduler.add_job(
+    #         weekly_sync_job,
+    #         "cron",
+    #         hour=17,
+    #         minute=0,
+    #         day_of_week="mon",
+    #         id="weekly_stock_sync",
+    #         replace_existing=True,
+    #     )
+    #     logger.info("Registered weekly_stock_sync job (Monday 17:00)")
+    logger.info("weekly_stock_sync job is DISABLED")
 
 
 def register_orchestrator_jobs():
     """Register Orchestrator scheduled jobs (idempotent)."""
     from src.agents.orchestrator.jobs import daily_screening_job
 
-    if not scheduler.get_job("daily_screening"):
-        scheduler.add_job(
-            daily_screening_job,
-            "cron",
-            hour=16,
-            minute=0,
-            day_of_week="mon-fri",
-            id="daily_screening",
-            replace_existing=True,
-        )
-        logger.info("Registered daily_screening job (weekdays 16:00)")
+    # NOTE: Jobs temporarily disabled
+    # if not scheduler.get_job("daily_screening"):
+    #     scheduler.add_job(
+    #         daily_screening_job,
+    #         "cron",
+    #         hour=16,
+    #         minute=0,
+    #         day_of_week="mon-fri",
+    #         id="daily_screening",
+    #         replace_existing=True,
+    #     )
+    #     logger.info("Registered daily_screening job (weekdays 16:00)")
+    logger.info("daily_screening job is DISABLED")
 
 
 def register_event_agent_jobs():
     """Register Event Agent scheduled jobs (idempotent)."""
     from src.agents.event_agent.jobs import morning_event_scan_job
 
-    if not scheduler.get_job("morning_event_scan"):
-        scheduler.add_job(
-            morning_event_scan_job,
-            "cron",
-            hour=6,
-            minute=30,
-            day_of_week="mon-fri",
-            id="morning_event_scan",
-            replace_existing=True,
-        )
-        logger.info("Registered morning_event_scan job (weekdays 06:30)")
+    # NOTE: Jobs temporarily disabled
+    # if not scheduler.get_job("morning_event_scan"):
+    #     scheduler.add_job(
+    #         morning_event_scan_job,
+    #         "cron",
+    #         hour=6,
+    #         minute=30,
+    #         day_of_week="mon-fri",
+    #         id="morning_event_scan",
+    #         replace_existing=True,
+    #     )
+    #     logger.info("Registered morning_event_scan job (weekdays 06:30)")
+    logger.info("morning_event_scan job is DISABLED")
 
 
 def register_recommendation_jobs():
@@ -138,26 +146,29 @@ def register_recommendation_jobs():
         rec_performance_tracking_job,
     )
 
-    if not scheduler.get_job("daily_recommendation"):
-        scheduler.add_job(
-            daily_recommendation_job,
-            "cron",
-            hour=7,
-            minute=30,
-            day_of_week="mon-fri",
-            id="daily_recommendation",
-            replace_existing=True,
-        )
-        logger.info("Registered daily_recommendation job (weekdays 07:30)")
+    # NOTE: Jobs temporarily disabled
+    # if not scheduler.get_job("daily_recommendation"):
+    #     scheduler.add_job(
+    #         daily_recommendation_job,
+    #         "cron",
+    #         hour=7,
+    #         minute=30,
+    #         day_of_week="mon-fri",
+    #         id="daily_recommendation",
+    #         replace_existing=True,
+    #     )
+    #     logger.info("Registered daily_recommendation job (weekdays 07:30)")
+    logger.info("daily_recommendation job is DISABLED")
 
-    if not scheduler.get_job("rec_performance_tracking"):
-        scheduler.add_job(
-            rec_performance_tracking_job,
-            "cron",
-            hour=15,
-            minute=45,
-            day_of_week="mon-fri",
-            id="rec_performance_tracking",
-            replace_existing=True,
-        )
-        logger.info("Registered rec_performance_tracking job (weekdays 15:45)")
+    # if not scheduler.get_job("rec_performance_tracking"):
+    #     scheduler.add_job(
+    #         rec_performance_tracking_job,
+    #         "cron",
+    #         hour=15,
+    #         minute=45,
+    #         day_of_week="mon-fri",
+    #         id="rec_performance_tracking",
+    #         replace_existing=True,
+    #     )
+    #     logger.info("Registered rec_performance_tracking job (weekdays 15:45)")
+    logger.info("rec_performance_tracking job is DISABLED")

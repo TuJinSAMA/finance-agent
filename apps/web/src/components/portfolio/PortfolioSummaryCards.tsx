@@ -21,7 +21,7 @@ function SummaryCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border border-cream-dark p-4 md:p-5 rounded-xl flex flex-col gap-1.5 shadow-sm">
+    <div className="bg-white border border-divider p-4 md:p-5 rounded-xl flex flex-col gap-1.5 shadow-sm">
       <div className="flex items-center gap-2">
         <Icon className="w-4 h-4 text-warm-gray" />
         <p className="text-xs font-medium text-warm-gray uppercase tracking-wider">
@@ -46,24 +46,24 @@ export default function PortfolioSummaryCards({ summary, holdingsCount }: Props)
     ? "text-accent-red"
     : profitIsNegative
       ? "text-accent-green"
-      : "text-charcoal";
+      : "text-ink";
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       <SummaryCard label={t("totalMarketValue")} icon={Wallet}>
-        <p className="text-xl md:text-2xl font-bold text-charcoal tabular-nums">
+        <p className="text-xl md:text-2xl font-medium text-ink tabular-nums">
           {formatCurrency(summary.total_market_value)}
         </p>
       </SummaryCard>
 
       <SummaryCard label={t("totalCost")} icon={DollarSign}>
-        <p className="text-xl md:text-2xl font-bold text-charcoal tabular-nums">
+        <p className="text-xl md:text-2xl font-medium text-ink tabular-nums">
           {formatCurrency(summary.total_cost)}
         </p>
       </SummaryCard>
 
       <SummaryCard label={t("totalProfit")} icon={TrendingUp}>
-        <p className={`text-xl md:text-2xl font-bold tabular-nums ${profitColor}`}>
+        <p className={`text-xl md:text-2xl font-medium tabular-nums ${profitColor}`}>
           {profitIsPositive ? "+" : ""}
           {formatCurrency(summary.total_profit)}
           {summary.total_profit_pct !== null && (
@@ -76,7 +76,7 @@ export default function PortfolioSummaryCards({ summary, holdingsCount }: Props)
       </SummaryCard>
 
       <SummaryCard label={t("holdingsCount")} icon={Layers}>
-        <p className="text-xl md:text-2xl font-bold text-charcoal tabular-nums">
+        <p className="text-xl md:text-2xl font-medium text-ink tabular-nums">
           {holdingsCount}
         </p>
       </SummaryCard>

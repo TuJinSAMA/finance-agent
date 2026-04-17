@@ -3,6 +3,9 @@
 :root {
   /* AlphaDesk Design System Colors */
   --color-cream: #FAF7F2;
+  --color-ink: #141413;
+  --color-terracotta: #C96442;
+  --color-terracotta-dark: #B85738;
   --color-dark-green: #2C3E2D;
   --color-green: #3A6B5A;
   --color-green-dark: #2A5244;
@@ -20,6 +23,9 @@
 
 @theme inline {
   --color-cream: #FAF7F2;
+  --color-ink: #141413;
+  --color-terracotta: #C96442;
+  --color-terracotta-dark: #B85738;
   --color-cream-dark: #E8E0D4;
   --color-dark-green: #2C3E2D;
   --color-forest: #2C3E2D;
