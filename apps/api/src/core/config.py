@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     ENV: str = "dev"
     DATABASE_URL: str = "postgresql+asyncpg://localhost:5432/finance"
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     CLERK_WEBHOOK_SIGNING_SECRET: str = ""
     CLERK_JWKS_URL: str = ""

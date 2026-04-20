@@ -3,32 +3,24 @@
 import { AlertCircle, ArrowRight, Loader2, LogIn } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useApi } from "@/hooks/useApi";
-import type { MarketMetric, PublicMarketBoardResponse } from "@/types/api";
+import type { MarketGroupSnapshotResponse, MarketMetric } from "@/types/api";
 import { Link } from "../../../../navigation";
 
 type BoardCopy = {
   eyebrow: string;
+  title: string;
+  summary: string;
   asOf: string;
+  lastSuccess: string;
   source: string;
   sections: {
     macro: string;
     assets: string;
-    custom: string;
   };
-  marketState: {
-    riskOn: string;
-    riskOff: string;
-    neutral: string;
-    dataIncomplete: string;
-  };
-  summary: {
-    riskOn: string;
-    riskOff: string;
-    neutral: string;
-    dataIncomplete: string;
-    availability: (macroAvailable: number, macroTotal: number, assetsAvailable: number, assetsTotal: number) => string;
-  };
+  availability: (macroAvailable: number, macroTotal: number, assetsAvailable: number, assetsTotal: number) => string;
+  partialAvailability: (section: string, available: number, total: number) => string;
   status: Record<MarketMetric["status"], string>;
+  groupStatus: Record<MarketGroupSnapshotResponse["status"], string>;
   unavailable: string;
   noChange: string;
   loginEyebrow: string;
@@ -39,31 +31,28 @@ type BoardCopy = {
 
 const EN_COPY: BoardCopy = {
   eyebrow: "Public market board",
+  title: "Macro and asset snapshots",
+  summary: "A quick read on broad market inputs from the public data feed.",
   asOf: "As of",
+  lastSuccess: "Last successful refresh",
   source: "Source",
   sections: {
     macro: "Macro",
     assets: "Assets",
-    custom: "China & FX",
   },
-  marketState: {
-    riskOn: "Risk-On",
-    riskOff: "Risk-Off",
-    neutral: "Neutral",
-    dataIncomplete: "Data Incomplete",
-  },
-  summary: {
-    riskOn: "Risk appetite is improving across core signals.",
-    riskOff: "Defensive positioning is leading across core signals.",
-    neutral: "Core signals are mixed and do not point to a strong regime shift.",
-    dataIncomplete: "Some core signals are missing, so the market read is provisional.",
-    availability: (macroAvailable, macroTotal, assetsAvailable, assetsTotal) =>
-      `Coverage: macro ${macroAvailable}/${macroTotal}, assets ${assetsAvailable}/${assetsTotal}.`,
-  },
+  availability: (macroAvailable, macroTotal, assetsAvailable, assetsTotal) =>
+    `Coverage: macro ${macroAvailable}/${macroTotal}, assets ${assetsAvailable}/${assetsTotal}.`,
+  partialAvailability: (section, available, total) =>
+    `Coverage: ${section.toLowerCase()} ${available}/${total}.`,
   status: {
     ok: "Live",
     unavailable: "Unavailable",
     stale: "Stale",
+  },
+  groupStatus: {
+    ok: "Ready",
+    stale: "Stale",
+    empty: "Empty",
   },
   unavailable: "Unavailable",
   noChange: "No daily change",
@@ -76,31 +65,28 @@ const EN_COPY: BoardCopy = {
 
 const ZH_COPY: BoardCopy = {
   eyebrow: "公开市场看板",
+  title: "宏观与资产快照",
+  summary: "来自公开数据源的宏观与跨资产市场快照。",
   asOf: "更新时间",
+  lastSuccess: "最近成功刷新",
   source: "数据源",
   sections: {
     macro: "宏观",
     assets: "资产",
-    custom: "中国与汇率",
   },
-  marketState: {
-    riskOn: "偏风险",
-    riskOff: "偏避险",
-    neutral: "中性",
-    dataIncomplete: "数据不足",
-  },
-  summary: {
-    riskOn: "核心信号整体偏积极，市场风险偏好有所抬升。",
-    riskOff: "核心信号整体偏谨慎，防御情绪正在占优。",
-    neutral: "核心信号相互分化，暂未显示出明确的风格切换。",
-    dataIncomplete: "部分核心信号缺失，因此当前判断仅供参考。",
-    availability: (macroAvailable, macroTotal, assetsAvailable, assetsTotal) =>
-      `当前可用数据：宏观 ${macroAvailable}/${macroTotal}，资产 ${assetsAvailable}/${assetsTotal}。`,
-  },
+  availability: (macroAvailable, macroTotal, assetsAvailable, assetsTotal) =>
+    `当前可用数据：宏观 ${macroAvailable}/${macroTotal}，资产 ${assetsAvailable}/${assetsTotal}。`,
+  partialAvailability: (section, available, total) =>
+    `当前可用数据：${section} ${available}/${total}。`,
   status: {
     ok: "正常",
     unavailable: "不可用",
     stale: "缓存",
+  },
+  groupStatus: {
+    ok: "可用",
+    stale: "过期",
+    empty: "空快照",
   },
   unavailable: "暂无数据",
   noChange: "暂无日内变化",
@@ -115,59 +101,46 @@ function getCopy(locale: string): BoardCopy {
   return locale.startsWith("zh") ? ZH_COPY : EN_COPY;
 }
 
-function getMarketStateKey(label: string): keyof BoardCopy["marketState"] {
-  switch (label) {
-    case "Risk-On 偏风险":
-      return "riskOn";
-    case "Risk-Off 偏避险":
-      return "riskOff";
-    case "Data Incomplete 数据不足":
-      return "dataIncomplete";
-    default:
-      return "neutral";
-  }
+function countAvailableMetrics(snapshot: MarketGroupSnapshotResponse): number {
+  return snapshot.items.filter((metric) => metric.status === "ok").length;
 }
 
-function getLocalizedMarketState(
-  label: string,
+function getAvailabilitySummary(
+  snapshots: {
+    macro: MarketGroupSnapshotResponse | null;
+    assets: MarketGroupSnapshotResponse | null;
+  },
   copy: BoardCopy,
-): {
-  title: string;
-  summary: string;
-} {
-  const stateKey = getMarketStateKey(label);
+): string | null {
+  const macro = snapshots.macro;
+  const assets = snapshots.assets;
 
-  return {
-    title: copy.marketState[stateKey],
-    summary: copy.summary[stateKey],
-  };
-}
-
-function getAvailabilitySummary(data: PublicMarketBoardResponse, copy: BoardCopy): string {
-  const macroAvailable = data.macro.filter((metric) => metric.status === "ok").length;
-  const assetsAvailable = data.assets.filter((metric) => metric.status === "ok").length;
-
-  return copy.summary.availability(
-    macroAvailable,
-    data.macro.length,
-    assetsAvailable,
-    data.assets.length,
-  );
-}
-
-function formatBoardDate(locale: string, value: string): string {
-  const parsed = new Date(`${value}T00:00:00`);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
+  if (macro && assets) {
+    return copy.availability(
+      countAvailableMetrics(macro),
+      macro.items.length,
+      countAvailableMetrics(assets),
+      assets.items.length,
+    );
   }
 
-  return new Intl.DateTimeFormat(locale, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  }).format(parsed);
+  if (macro) {
+    return copy.partialAvailability(
+      copy.sections.macro,
+      countAvailableMetrics(macro),
+      macro.items.length,
+    );
+  }
+
+  if (assets) {
+    return copy.partialAvailability(
+      copy.sections.assets,
+      countAvailableMetrics(assets),
+      assets.items.length,
+    );
+  }
+
+  return null;
 }
 
 function formatAsOf(locale: string, value: string): string {
@@ -208,6 +181,43 @@ function getStatusTone(status: MarketMetric["status"]): string {
   }
 
   return "bg-cream text-warm-gray border-divider";
+}
+
+function getGroupStatusTone(status: MarketGroupSnapshotResponse["status"]): string {
+  if (status === "ok") {
+    return "bg-dark-green/10 text-dark-green border-dark-green/15";
+  }
+  if (status === "stale") {
+    return "bg-gold/10 text-ochre border-gold/20";
+  }
+
+  return "bg-cream text-warm-gray border-divider";
+}
+
+function getLatestSnapshot(
+  snapshots: readonly MarketGroupSnapshotResponse[],
+  field: "as_of" | "last_success_at",
+): string | null {
+  if (snapshots.length === 0) {
+    return null;
+  }
+
+  return snapshots.reduce((latest, snapshot) => {
+    if (!latest) {
+      return snapshot[field];
+    }
+
+    return new Date(snapshot[field]) >= new Date(latest) ? snapshot[field] : latest;
+  }, "");
+}
+
+function getCombinedSource(snapshots: readonly MarketGroupSnapshotResponse[]): string {
+  if (snapshots.length === 0) {
+    return "";
+  }
+
+  const sources = Array.from(new Set(snapshots.map((snapshot) => snapshot.source)));
+  return sources.join(" / ");
 }
 
 function MetricCard({
@@ -263,27 +273,41 @@ function MetricCard({
 }
 
 function MetricSection({
-  title,
-  metrics,
+  snapshot,
   copy,
+  locale,
 }: Readonly<{
-  title: string;
-  metrics: MarketMetric[];
+  snapshot: MarketGroupSnapshotResponse;
   copy: BoardCopy;
+  locale: string;
 }>): React.JSX.Element {
   return (
     <section className="rounded-2xl border border-divider bg-white p-5 shadow-sm md:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-lg font-serif font-medium text-ink">{title}</h2>
-        <span className="text-xs uppercase tracking-[0.16em] text-warm-gray">
-          {metrics.length}
-        </span>
+        <div>
+          <h2 className="text-lg font-serif font-medium text-ink">
+            {copy.sections[snapshot.group]}
+          </h2>
+          <p className="mt-1 text-xs text-warm-gray">
+            {copy.asOf} {formatAsOf(locale, snapshot.as_of)}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs uppercase tracking-[0.16em] text-warm-gray">
+            {snapshot.items.length}
+          </span>
+          <span
+            className={`shrink-0 rounded-full border px-2 py-1 text-[11px] font-medium ${getGroupStatusTone(snapshot.status)}`}
+          >
+            {copy.groupStatus[snapshot.status]}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
+        {snapshot.items.map((metric) => (
           <MetricCard
-            key={`${title}-${metric.symbol}`}
+            key={`${snapshot.group}-${metric.symbol}`}
             metric={metric}
             copy={copy}
           />
@@ -304,20 +328,25 @@ function LoadingState({ message }: Readonly<{ message: string }>): React.JSX.Ele
   );
 }
 
-function ErrorState({
+function SectionUnavailableState({
+  title,
   message,
   onRetry,
   retryLabel,
 }: Readonly<{
+  title: string;
   message: string;
   onRetry: () => void;
   retryLabel: string;
 }>): React.JSX.Element {
   return (
-    <div className="rounded-2xl border border-divider bg-white px-6 py-16 shadow-sm">
-      <div className="flex flex-col items-center justify-center gap-4">
+    <section className="rounded-2xl border border-divider bg-white p-5 shadow-sm md:p-6">
+      <div className="flex min-h-56 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-divider bg-cream/40 px-6 text-center">
         <AlertCircle className="h-8 w-8 text-accent-red" />
-        <p className="text-sm text-warm-gray">{message}</p>
+        <div className="space-y-2">
+          <h2 className="text-lg font-serif font-medium text-ink">{title}</h2>
+          <p className="text-sm text-warm-gray">{message}</p>
+        </div>
         <button
           type="button"
           onClick={onRetry}
@@ -326,31 +355,59 @@ function ErrorState({
           {retryLabel}
         </button>
       </div>
-    </div>
+    </section>
+  );
+}
+
+function SectionLoadingState({
+  title,
+  message,
+}: Readonly<{
+  title: string;
+  message: string;
+}>): React.JSX.Element {
+  return (
+    <section className="rounded-2xl border border-divider bg-white p-5 shadow-sm md:p-6">
+      <div className="flex min-h-56 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-divider bg-cream/40 px-6 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-terracotta" />
+        <div className="space-y-2">
+          <h2 className="text-lg font-serif font-medium text-ink">{title}</h2>
+          <p className="text-sm text-warm-gray">{message}</p>
+        </div>
+      </div>
+    </section>
   );
 }
 
 export default function BoardPage(): React.JSX.Element {
   const locale = useLocale();
-  const dashboardT = useTranslations("dashboard");
+  const boardT = useTranslations("board");
   const copy = getCopy(locale);
-  const { data, loading, error, refetch } = useApi<PublicMarketBoardResponse>(
-    "/api/v1/public/market-board",
+  const macroSnapshot = useApi<MarketGroupSnapshotResponse>(
+    "/api/v1/public/market-macro",
   );
-  const marketState = data ? getLocalizedMarketState(data.market_state.label, copy) : null;
-  const availabilitySummary = data ? getAvailabilitySummary(data, copy) : null;
+  const assetsSnapshot = useApi<MarketGroupSnapshotResponse>(
+    "/api/v1/public/market-assets",
+  );
+  const snapshots = {
+    macro: macroSnapshot.data,
+    assets: assetsSnapshot.data,
+  };
+  const availableSnapshots = Object.values(snapshots).filter(
+    (snapshot): snapshot is MarketGroupSnapshotResponse => snapshot !== null,
+  );
+  const hasAnyData = availableSnapshots.length > 0;
+  const latestAsOf = getLatestSnapshot(availableSnapshots, "as_of");
+  const latestLastSuccess = getLatestSnapshot(availableSnapshots, "last_success_at");
+  const combinedSource = getCombinedSource(availableSnapshots);
+  const loading = !hasAnyData && (macroSnapshot.loading || assetsSnapshot.loading);
+  const availabilitySummary = getAvailabilitySummary(snapshots, copy);
 
   return (
     <main className="min-h-screen bg-cream px-4 py-8 md:px-8 md:py-10">
       <div className="mx-auto max-w-6xl space-y-5">
         {loading ? (
-          <LoadingState message={dashboardT("loading")} />
-        ) : error || !data ? (
-          <ErrorState
-            message={dashboardT("errorLoad")}
-            onRetry={refetch}
-            retryLabel={dashboardT("retry")}
-          />
+          <LoadingState message={boardT("loading")} />
         ) : (
           <>
             <header className="rounded-2xl border border-divider bg-white p-6 shadow-sm">
@@ -359,17 +416,17 @@ export default function BoardPage(): React.JSX.Element {
                   <p className="text-xs font-medium uppercase tracking-[0.24em] text-warm-gray">
                     {copy.eyebrow}
                   </p>
-                  <p className="mt-3 text-sm text-warm-gray">
-                    {formatBoardDate(locale, data.market_state.date)}
-                  </p>
                   <h1 className="mt-1 text-3xl font-serif font-medium tracking-tight text-ink md:text-4xl">
-                    {marketState?.title}
+                    {copy.title}
                   </h1>
                   <p className="mt-3 max-w-2xl text-sm leading-relaxed text-charcoal/80 md:text-base">
-                    {marketState?.summary}
+                    {copy.summary}
                   </p>
                   <p className="mt-2 max-w-2xl text-sm leading-relaxed text-charcoal/70">
                     {availabilitySummary}
+                  </p>
+                  <p className="mt-3 text-sm text-warm-gray">
+                    {latestAsOf ? formatAsOf(locale, latestAsOf) : boardT("unavailable")}
                   </p>
                 </div>
 
@@ -378,19 +435,50 @@ export default function BoardPage(): React.JSX.Element {
                     {copy.asOf}
                   </p>
                   <p className="mt-1 text-sm font-medium text-charcoal">
-                    {formatAsOf(locale, data.as_of)}
+                    {latestAsOf ? formatAsOf(locale, latestAsOf) : boardT("unavailable")}
+                  </p>
+                  <p className="mt-4 text-xs uppercase tracking-[0.16em] text-warm-gray">
+                    {copy.lastSuccess}
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-charcoal">
+                    {latestLastSuccess
+                      ? formatAsOf(locale, latestLastSuccess)
+                      : boardT("unavailable")}
                   </p>
                   <p className="mt-4 text-xs uppercase tracking-[0.16em] text-warm-gray">
                     {copy.source}
                   </p>
-                  <p className="mt-1 text-sm font-medium text-charcoal">{data.source}</p>
+                  <p className="mt-1 text-sm font-medium text-charcoal">
+                    {combinedSource || boardT("unavailable")}
+                  </p>
                 </div>
               </div>
             </header>
 
-            <MetricSection title={copy.sections.macro} metrics={data.macro} copy={copy} />
-            <MetricSection title={copy.sections.assets} metrics={data.assets} copy={copy} />
-            <MetricSection title={copy.sections.custom} metrics={data.custom} copy={copy} />
+            {snapshots.macro ? (
+              <MetricSection snapshot={snapshots.macro} copy={copy} locale={locale} />
+            ) : macroSnapshot.loading ? (
+              <SectionLoadingState title={copy.sections.macro} message={boardT("loading")} />
+            ) : (
+              <SectionUnavailableState
+                title={copy.sections.macro}
+                message={boardT("sectionUnavailable")}
+                onRetry={macroSnapshot.refetch}
+                retryLabel={boardT("retry")}
+              />
+            )}
+            {snapshots.assets ? (
+              <MetricSection snapshot={snapshots.assets} copy={copy} locale={locale} />
+            ) : assetsSnapshot.loading ? (
+              <SectionLoadingState title={copy.sections.assets} message={boardT("loading")} />
+            ) : (
+              <SectionUnavailableState
+                title={copy.sections.assets}
+                message={boardT("sectionUnavailable")}
+                onRetry={assetsSnapshot.refetch}
+                retryLabel={boardT("retry")}
+              />
+            )}
 
             <section className="rounded-2xl border border-divider bg-white p-6 shadow-sm">
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">

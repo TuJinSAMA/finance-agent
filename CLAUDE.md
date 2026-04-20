@@ -168,7 +168,7 @@ The API follows a layered architecture under `apps/api/src/`:
   - `exceptions.py` - `AppException`, `NotFoundException`, `AlreadyExistsException`
   - `middleware.py` - `RequestLoggingMiddleware` (logging + `X-Process-Time` header)
   - `auth.py` - Clerk JWT authentication (`get_current_user` dependency, JWKS public key caching, Bearer token verification)
-  - `scheduler.py` - APScheduler (BackgroundScheduler, SQLAlchemy job store, heartbeat + data agent + orchestrator + event agent + recommendation jobs)
+  - `scheduler.py` - APScheduler (BackgroundScheduler, SQLAlchemy job store, data agent + orchestrator + event agent + recommendation jobs)
   - `llm.py` - LangChain + OpenRouter LLM 封装 (`get_llm()` 工厂函数, `chat_json()` 结构化 JSON 调用)
 - **`models/`** - SQLAlchemy ORM models
   - `base.py` - `Base`, `UUIDMixin`, `TimestampMixin`

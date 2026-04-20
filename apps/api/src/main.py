@@ -5,18 +5,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from src.agents.data_agent.trading_calendar import trading_calendar
 from src.core.config import settings
 from src.core.database import async_session, engine
 from src.core.middleware import RequestLoggingMiddleware
-from src.core.scheduler import (
-    register_data_agent_jobs,
-    register_default_jobs,
-    register_event_agent_jobs,
-    register_orchestrator_jobs,
-    register_recommendation_jobs,
-    scheduler,
-)
+from src.core.redis import redis_manager
 from src.routers import (
     admin,
     notifications,
@@ -36,20 +28,10 @@ logging.basicConfig(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log = logging.getLogger(__name__)
-    try:
-        await trading_calendar.load()
-    except Exception:
-        log.warning("Failed to load trading calendar — jobs will treat every day as non-trading")
-
-    register_default_jobs()
-    register_data_agent_jobs()
-    register_orchestrator_jobs()
-    register_event_agent_jobs()
-    register_recommendation_jobs()
-    scheduler.start()
-    log.info("APScheduler started")
+    await redis_manager.init(settings.REDIS_URL)
+    log.info("Scheduler is disabled — jobs will run in a separate process")
     yield
-    scheduler.shutdown(wait=False)
+    await redis_manager.close()
     await engine.dispose()
 
 

@@ -1,10 +1,17 @@
+import asyncio
 import logging
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
+from redis.asyncio import Redis
 
 from src.core.config import settings
+from src.services.public_board import build_assets_snapshot
+from src.services.public_board import build_macro_snapshot
+from src.services.public_market_cache import write_market_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -32,34 +39,68 @@ scheduler = BackgroundScheduler(
 )
 
 
-# ── sample jobs ──────────────────────────────────────────────
+@asynccontextmanager
+async def _scheduler_redis(redis: Redis | None = None):
+    if redis is not None:
+        yield redis
+        return
+
+    cache = Redis.from_url(
+        settings.REDIS_URL,
+        decode_responses=True,
+    )
+    try:
+        await cache.ping()
+        yield cache
+    finally:
+        await cache.aclose()
 
 
-def tick():
-    logger.info("APScheduler heartbeat — scheduler is alive")
+async def refresh_market_macro_snapshot(redis: Redis | None = None) -> None:
+    async with _scheduler_redis(redis) as cache:
+        snapshot = await build_macro_snapshot(datetime.now(UTC))
+        await write_market_snapshot(cache, snapshot)
+    logger.info("Refreshed public market macro snapshot")
 
 
-def register_default_jobs():
-    """Add built-in jobs if they don't already exist (idempotent)."""
-    if not scheduler.get_job("heartbeat"):
-        scheduler.add_job(
-            tick,
-            "interval",
-            minutes=1,
-            id="heartbeat",
-            replace_existing=True,
-        )
-        logger.info("Registered heartbeat job (runs every 1 min)")
+async def refresh_market_assets_snapshot(redis: Redis | None = None) -> None:
+    async with _scheduler_redis(redis) as cache:
+        snapshot = await build_assets_snapshot(datetime.now(UTC))
+        await write_market_snapshot(cache, snapshot)
+    logger.info("Refreshed public market assets snapshot")
+
+
+def refresh_public_market_macro() -> None:
+    asyncio.run(refresh_market_macro_snapshot())
+
+
+def refresh_public_market_assets() -> None:
+    asyncio.run(refresh_market_assets_snapshot())
+
+
+def register_public_market_jobs() -> None:
+    """Register public market refresh jobs (idempotent)."""
+    scheduler.add_job(
+        refresh_public_market_macro,
+        "interval",
+        minutes=15,
+        id="refresh_public_market_macro",
+        replace_existing=True,
+    )
+    logger.info("Registered refresh_public_market_macro job (every 15 min)")
+
+    scheduler.add_job(
+        refresh_public_market_assets,
+        "interval",
+        minutes=15,
+        id="refresh_public_market_assets",
+        replace_existing=True,
+    )
+    logger.info("Registered refresh_public_market_assets job (every 15 min)")
 
 
 def register_data_agent_jobs():
     """Register Data Agent scheduled jobs (idempotent)."""
-    from src.agents.data_agent.jobs import (
-        daily_quotes_job,
-        technical_indicators_job,
-        weekly_sync_job,
-    )
-
     # NOTE: Jobs temporarily disabled
     # if not scheduler.get_job("daily_quotes"):
     #     scheduler.add_job(
@@ -103,8 +144,6 @@ def register_data_agent_jobs():
 
 def register_orchestrator_jobs():
     """Register Orchestrator scheduled jobs (idempotent)."""
-    from src.agents.orchestrator.jobs import daily_screening_job
-
     # NOTE: Jobs temporarily disabled
     # if not scheduler.get_job("daily_screening"):
     #     scheduler.add_job(
@@ -122,8 +161,6 @@ def register_orchestrator_jobs():
 
 def register_event_agent_jobs():
     """Register Event Agent scheduled jobs (idempotent)."""
-    from src.agents.event_agent.jobs import morning_event_scan_job
-
     # NOTE: Jobs temporarily disabled
     # if not scheduler.get_job("morning_event_scan"):
     #     scheduler.add_job(
@@ -141,11 +178,6 @@ def register_event_agent_jobs():
 
 def register_recommendation_jobs():
     """Register recommendation pipeline + performance tracking jobs (idempotent)."""
-    from src.agents.orchestrator.jobs import (
-        daily_recommendation_job,
-        rec_performance_tracking_job,
-    )
-
     # NOTE: Jobs temporarily disabled
     # if not scheduler.get_job("daily_recommendation"):
     #     scheduler.add_job(

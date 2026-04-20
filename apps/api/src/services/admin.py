@@ -22,8 +22,6 @@ class AdminService:
         self.db = db
 
     async def get_pipeline_status(self, target_date: date) -> list[PipelineStepStatus]:
-        from src.core.scheduler import scheduler
-
         steps = []
 
         job_defs = [
@@ -41,15 +39,6 @@ class AdminService:
         )
 
         for job_id, label, schedule_time in job_defs:
-            job = scheduler.get_job(job_id)
-            if not job:
-                steps.append(PipelineStepStatus(
-                    step=job_id,
-                    label=f"{label}（{schedule_time}）",
-                    status="not_scheduled",
-                ))
-                continue
-
             last_log = latest_logs.get(job_id)
             if last_log:
                 status = last_log.status  # success / failed / skipped / running
@@ -65,7 +54,7 @@ class AdminService:
                 label=f"{label}（{schedule_time}）",
                 status=status,
                 last_run=last_run,
-                next_run=job.next_run_time,
+                next_run=None,
                 detail=detail,
                 last_log=JobExecutionLogRead.model_validate(last_log) if last_log else None,
             ))

@@ -128,7 +128,22 @@ export interface MarketMetric {
   value: number | null;
   display: string | null;
   change_pct: number | null;
-  status: "ok" | "unavailable" | "stale";
+  status: MarketMetricStatus;
+}
+
+export type MarketMetricStatus = "ok" | "unavailable" | "stale";
+
+export type MarketGroupStatus = "ok" | "stale" | "empty";
+
+export type SnapshotGroup = "macro" | "assets";
+
+export interface MarketGroupSnapshotResponse {
+  group: SnapshotGroup;
+  status: MarketGroupStatus;
+  as_of: string;
+  last_success_at: string;
+  source: string;
+  items: MarketMetric[];
 }
 
 export interface PublicMarketBoardResponse {

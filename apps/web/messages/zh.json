@@ -139,11 +139,13 @@
   "board": {
     "title": "推荐页看板",
     "loading": "看板加载中...",
+    "errorLoad": "加载失败，请稍后重试。",
     "retry": "重试",
     "asOf": "截至",
     "source": "来源",
     "loginCta": "登录查看推荐",
     "unavailable": "看板暂不可用",
+    "sectionUnavailable": "该分区暂时不可用，请稍后重试。",
     "noChange": "无变化"
   },
   "portfolio": {

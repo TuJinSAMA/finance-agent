@@ -139,11 +139,13 @@
   "board": {
     "title": "Recommendations Board",
     "loading": "Loading board...",
+    "errorLoad": "Failed to load. Please try again.",
     "retry": "Retry",
     "asOf": "As of",
     "source": "Source",
     "loginCta": "Sign in to view recommendations",
     "unavailable": "Board unavailable",
+    "sectionUnavailable": "This section is temporarily unavailable. Please try again.",
     "noChange": "No change"
   },
   "portfolio": {
