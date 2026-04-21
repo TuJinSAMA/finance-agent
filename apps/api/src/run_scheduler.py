@@ -5,8 +5,9 @@ from threading import Event
 from src.core.config import settings
 from src.core.scheduler import close_scheduler_redis
 from src.core.scheduler import register_public_market_jobs
-from src.core.scheduler import refresh_market_assets_snapshot
-from src.core.scheduler import refresh_market_macro_snapshot
+from src.core.scheduler import refresh_crypto_snapshot
+from src.core.scheduler import refresh_equity_snapshot
+from src.core.scheduler import refresh_extended_snapshot
 from src.core.scheduler import scheduler
 
 
@@ -19,8 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 async def _run_startup_refreshes() -> None:
-    await refresh_market_macro_snapshot()
-    await refresh_market_assets_snapshot()
+    await refresh_crypto_snapshot()
+    await refresh_extended_snapshot()
+    await refresh_equity_snapshot()
 
 
 def main() -> None:

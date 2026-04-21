@@ -8,9 +8,30 @@ from src.schemas.public_board import SnapshotGroup
 
 
 CACHE_VERSION = "v1"
-SNAPSHOT_TTL_SECONDS = 45 * 60
-FRESH_WINDOW = timedelta(minutes=15)
-STALE_WINDOW = timedelta(minutes=45)
+
+_GROUP_TTL_SECONDS: dict[str, int] = {
+    "crypto": 30 * 60,
+    "extended": 60 * 60,
+    "equity": 60 * 60,
+    "macro": 45 * 60,
+    "assets": 45 * 60,
+}
+
+_GROUP_FRESH_WINDOW: dict[str, timedelta] = {
+    "crypto": timedelta(minutes=5),
+    "extended": timedelta(minutes=15),
+    "equity": timedelta(minutes=15),
+    "macro": timedelta(minutes=15),
+    "assets": timedelta(minutes=15),
+}
+
+_GROUP_STALE_WINDOW: dict[str, timedelta] = {
+    "crypto": timedelta(minutes=30),
+    "extended": timedelta(minutes=60),
+    "equity": timedelta(minutes=60),
+    "macro": timedelta(minutes=45),
+    "assets": timedelta(minutes=45),
+}
 
 
 def snapshot_cache_key(group: SnapshotGroup) -> str:
@@ -21,10 +42,12 @@ def classify_snapshot_status(
     snapshot: MarketGroupSnapshot,
     now: datetime,
 ) -> GroupStatus:
+    fresh_window = _GROUP_FRESH_WINDOW.get(snapshot.group, timedelta(minutes=15))
+    stale_window = _GROUP_STALE_WINDOW.get(snapshot.group, timedelta(minutes=45))
     age = now - snapshot.as_of
-    if age <= FRESH_WINDOW:
+    if age <= fresh_window:
         return "ok"
-    if age <= STALE_WINDOW:
+    if age <= stale_window:
         return "stale"
     return "empty"
 
@@ -33,10 +56,11 @@ async def write_market_snapshot(
     redis: Redis,
     snapshot: MarketGroupSnapshot,
 ) -> None:
+    ttl = _GROUP_TTL_SECONDS.get(snapshot.group, 45 * 60)
     await redis.set(
         snapshot_cache_key(snapshot.group),
         snapshot.model_dump_json(),
-        ex=SNAPSHOT_TTL_SECONDS,
+        ex=ttl,
     )
 
 

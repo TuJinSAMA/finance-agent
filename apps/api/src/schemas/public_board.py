@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 MetricStatus = Literal["ok", "unavailable", "stale"]
 GroupStatus = Literal["ok", "stale", "empty"]
-SnapshotGroup = Literal["macro", "assets"]
+SnapshotGroup = Literal["macro", "assets", "crypto", "extended", "equity"]
 
 
 class MarketMetric(BaseModel):

@@ -126,41 +126,71 @@ class QuoteSnapshot:
 
 
 
-async def build_macro_snapshot(as_of: datetime) -> MarketGroupSnapshot:
+async def build_crypto_snapshot(as_of: datetime) -> MarketGroupSnapshot:
+    btc_quote = await _safe_fetch_quote(YFINANCE_SYMBOLS["BTC"])
+    items = [_metric_from_quote("BTC", YFINANCE_SYMBOLS["BTC"], btc_quote, _format_number)]
+    return _build_group_snapshot(group="crypto", as_of=as_of, items=items)
+
+
+async def build_extended_snapshot(as_of: datetime) -> MarketGroupSnapshot:
     quotes = await asyncio.gather(
         _safe_fetch_quote(YFINANCE_SYMBOLS["VIX"]),
         _safe_fetch_quote(YFINANCE_SYMBOLS["US10Y"]),
         _safe_fetch_quote(YFINANCE_SYMBOLS["DXY"]),
         _safe_fetch_quote(US2Y_SYMBOL),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["GOLD"]),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["WTI"]),
     )
-    vix_quote, us10y_quote, dxy_quote, us2y_quote = quotes
+    vix_q, us10y_q, dxy_q, us2y_q, gold_q, wti_q = quotes
+    items = [
+        _metric_from_quote("VIX", YFINANCE_SYMBOLS["VIX"], vix_q, _format_number),
+        _metric_from_quote("US 10Y", YFINANCE_SYMBOLS["US10Y"], us10y_q, _format_percent),
+        _metric_from_quote("DXY", YFINANCE_SYMBOLS["DXY"], dxy_q, _format_number),
+        _build_spread_metric(us2y_q, us10y_q),
+        _metric_from_quote("Gold", YFINANCE_SYMBOLS["GOLD"], gold_q, _format_number),
+        _metric_from_quote("WTI", YFINANCE_SYMBOLS["WTI"], wti_q, _format_number),
+    ]
+    return _build_group_snapshot(group="extended", as_of=as_of, items=items)
 
-    return _build_macro_snapshot_from_quotes(
-        as_of=as_of,
-        vix_quote=vix_quote,
-        us10y_quote=us10y_quote,
-        dxy_quote=dxy_quote,
-        us2y_quote=us2y_quote,
-    )
 
-
-async def build_assets_snapshot(as_of: datetime) -> MarketGroupSnapshot:
+async def build_equity_snapshot(as_of: datetime) -> MarketGroupSnapshot:
     quotes = await asyncio.gather(
         _safe_fetch_quote(YFINANCE_SYMBOLS["SPX"]),
         _safe_fetch_quote(YFINANCE_SYMBOLS["NASDAQ"]),
-        _safe_fetch_quote(YFINANCE_SYMBOLS["GOLD"]),
-        _safe_fetch_quote(YFINANCE_SYMBOLS["WTI"]),
-        _safe_fetch_quote(YFINANCE_SYMBOLS["BTC"]),
     )
-    spx_quote, nasdaq_quote, gold_quote, wti_quote, btc_quote = quotes
+    spx_q, nasdaq_q = quotes
+    items = [
+        _metric_from_quote("S&P 500", YFINANCE_SYMBOLS["SPX"], spx_q, _format_number),
+        _metric_from_quote("NASDAQ", YFINANCE_SYMBOLS["NASDAQ"], nasdaq_q, _format_number),
+    ]
+    return _build_group_snapshot(group="equity", as_of=as_of, items=items)
 
-    return _build_assets_snapshot_from_quotes(
+
+MACRO_ITEM_NAMES = {"VIX", "US 10Y", "DXY", "2Y-10Y Spread"}
+ASSET_ITEM_NAMES_FROM_EXTENDED = {"Gold", "WTI"}
+
+
+async def build_macro_snapshot(as_of: datetime) -> MarketGroupSnapshot:
+    extended = await build_extended_snapshot(as_of)
+    macro_items = [item for item in extended.items if item.name in MACRO_ITEM_NAMES]
+    return extended.model_copy(update={"group": "macro", "items": macro_items})
+
+
+async def build_assets_snapshot(as_of: datetime) -> MarketGroupSnapshot:
+    crypto, equity, extended = await asyncio.gather(
+        build_crypto_snapshot(as_of),
+        build_equity_snapshot(as_of),
+        build_extended_snapshot(as_of),
+    )
+    asset_items = [item for item in extended.items if item.name in ASSET_ITEM_NAMES_FROM_EXTENDED]
+    asset_items += crypto.items + equity.items
+    return MarketGroupSnapshot(
+        group="assets",
+        status="ok",
         as_of=as_of,
-        spx_quote=spx_quote,
-        nasdaq_quote=nasdaq_quote,
-        gold_quote=gold_quote,
-        wti_quote=wti_quote,
-        btc_quote=btc_quote,
+        last_success_at=as_of,
+        source=SOURCE_NAME,
+        items=asset_items,
     )
 
 
