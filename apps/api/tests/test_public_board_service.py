@@ -12,21 +12,21 @@ from src.schemas.public_board import MarketGroupSnapshot
 from src.schemas.public_board import MarketMetric
 from src.services import public_board
 from src.services.public_board import QuoteSnapshot
-from src.services.public_board import normalize_metric
+from src.services.public_board import _build_metric
 
 
-def test_normalize_metric_marks_missing_vix_unavailable() -> None:
-    result = normalize_metric(
+def test_build_metric_marks_missing_vix_unavailable() -> None:
+    result = _build_metric(
         name="VIX",
         symbol="^VIX",
         value=None,
         change_pct=None,
     )
 
-    assert result["status"] == "unavailable"
-    assert result["value"] is None
-    assert result["name"] == "VIX"
-    assert result["symbol"] == "^VIX"
+    assert result.status == "unavailable"
+    assert result.value is None
+    assert result.name == "VIX"
+    assert result.symbol == "^VIX"
 
 
 def test_market_group_snapshot_serializes_macro_payload() -> None:
@@ -170,7 +170,7 @@ def test_safe_fetch_quote_returns_none_when_fetch_times_out(
         return QuoteSnapshot(value=1.0, previous_value=0.9, change_pct=11.11)
 
     monkeypatch.setattr(public_board.asyncio, "to_thread", fake_to_thread)
-    monkeypatch.setattr(public_board, "YFINANCE_FETCH_TIMEOUT_SECONDS", 0.01, raising=False)
+    monkeypatch.setattr(public_board, "FETCH_OVERALL_TIMEOUT_SECONDS", 0.01, raising=False)
 
     result = asyncio.run(public_board._safe_fetch_quote("TEST"))
 

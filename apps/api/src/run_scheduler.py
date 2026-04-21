@@ -3,6 +3,7 @@ import logging
 from threading import Event
 
 from src.core.config import settings
+from src.core.scheduler import close_scheduler_redis
 from src.core.scheduler import register_public_market_jobs
 from src.core.scheduler import refresh_market_assets_snapshot
 from src.core.scheduler import refresh_market_macro_snapshot
@@ -38,6 +39,7 @@ def main() -> None:
     finally:
         if scheduler.running:
             scheduler.shutdown(wait=False)
+        asyncio.run(close_scheduler_redis())
 
 
 if __name__ == "__main__":

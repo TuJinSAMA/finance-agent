@@ -1,11 +1,14 @@
 import asyncio
+import contextlib
 import logging
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from threading import Lock
 from typing import Any, Callable
 
 import pandas as pd
+import requests as _requests
 
 from src.schemas.public_board import (
     MarketGroupSnapshot,
@@ -15,12 +18,42 @@ from src.schemas.public_board import (
 
 logger = logging.getLogger(__name__)
 
+_PROXY_ENV_KEYS = (
+    "HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
+    "ALL_PROXY", "all_proxy",
+)
+
+
+@contextlib.contextmanager
+def _no_proxy_env():
+    saved: dict[str, str | None] = {}
+    for key in _PROXY_ENV_KEYS:
+        saved[key] = os.environ.get(key)
+        os.environ.pop(key, None)
+    try:
+        yield
+    finally:
+        for key, val in saved.items():
+            if val is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = val
+
+
+_NO_PROXY_SESSION: _requests.Session | None = None
+
+
+def _get_no_proxy_session() -> _requests.Session:
+    global _NO_PROXY_SESSION
+    if _NO_PROXY_SESSION is not None:
+        return _NO_PROXY_SESSION
+    s = _requests.Session()
+    s.trust_env = False
+    s.proxies = {"http": None, "https": None}
+    _NO_PROXY_SESSION = s
+    return s
+
 SOURCE_NAME = "akshare"
-YFINANCE_FETCH_TIMEOUT_SECONDS = 5.0
-YFINANCE_CONCURRENT_LIMIT = 3  # Max concurrent requests to avoid rate limiting
-YFINANCE_REQUEST_DELAY = 0.2  # Delay between requests in seconds
-YFINANCE_RETRY_ATTEMPTS = 3
-YFINANCE_RETRY_BACKOFF = [1, 2, 4]  # Exponential backoff delays
 
 YFINANCE_SYMBOLS: dict[str, str] = {
     "VIX": "^VIX",
@@ -34,12 +67,36 @@ YFINANCE_SYMBOLS: dict[str, str] = {
 }
 US2Y_SYMBOL = "^UST2Y"
 
-_YFINANCE_SEMAPHORE = asyncio.Semaphore(YFINANCE_CONCURRENT_LIMIT)
+YAHOO_FETCH_TIMEOUT_SECONDS = 10.0
+YAHOO_BASE_URL = "https://query1.finance.yahoo.com/v8/finance/chart"
+
+YAHOO_CHART_SYMBOLS: frozenset[str] = frozenset({
+    YFINANCE_SYMBOLS["VIX"],
+    YFINANCE_SYMBOLS["DXY"],
+    YFINANCE_SYMBOLS["SPX"],
+    YFINANCE_SYMBOLS["NASDAQ"],
+    YFINANCE_SYMBOLS["GOLD"],
+    YFINANCE_SYMBOLS["WTI"],
+    YFINANCE_SYMBOLS["BTC"],
+})
+
+AKSHARE_TREASURY_SYMBOLS: dict[str, str] = {
+    YFINANCE_SYMBOLS["US10Y"]: "美国10年期国债",
+    US2Y_SYMBOL: "美国2年期国债",
+}
+
+FETCH_CONCURRENT_LIMIT = 3
+FETCH_RETRY_ATTEMPTS = 3
+FETCH_RETRY_BACKOFF = [1, 2, 4]
+FETCH_REQUEST_DELAY = 0.2
+FETCH_OVERALL_TIMEOUT_SECONDS = 15.0
+
+_FETCH_SEMAPHORE = asyncio.Semaphore(FETCH_CONCURRENT_LIMIT)
 
 AKSHARE_INDEX_CODE_MAP: dict[str, list[str]] = {
     YFINANCE_SYMBOLS["SPX"]: ["SPX"],
     YFINANCE_SYMBOLS["NASDAQ"]: ["NDX"],
-    YFINANCE_SYMBOLS["DXY"]: ["UDI"],  # 美元指数
+    YFINANCE_SYMBOLS["DXY"]: ["UDI"],
 }
 
 AKSHARE_INDEX_NAME_MAP: dict[str, list[str]] = {
@@ -56,6 +113,7 @@ _AKSHARE_GLOBAL_INDEX_CACHE: pd.DataFrame | None = None
 _AKSHARE_GLOBAL_INDEX_CACHE_AT: datetime | None = None
 _AKSHARE_CRYPTO_CACHE: pd.DataFrame | None = None
 _AKSHARE_CRYPTO_CACHE_AT: datetime | None = None
+_AKSHARE_TREASURY_CACHE: dict[str, tuple[pd.DataFrame, datetime]] = {}
 
 
 @dataclass(slots=True)
@@ -65,33 +123,7 @@ class QuoteSnapshot:
     change_pct: float | None
 
 
-def normalize_metric(
-    name: str,
-    symbol: str,
-    value: float | None,
-    change_pct: float | None,
-    display: str | None = None,
-    status: str | None = None,
-) -> dict[str, Any]:
-    if value is None:
-        return {
-            "name": name,
-            "symbol": symbol,
-            "value": None,
-            "display": None,
-            "change_pct": None if change_pct is None else round(change_pct, 2),
-            "status": status or "unavailable",
-        }
 
-    rounded_value = round(value, 4)
-    return {
-        "name": name,
-        "symbol": symbol,
-        "value": rounded_value,
-        "display": display or f"{rounded_value:.2f}",
-        "change_pct": None if change_pct is None else round(change_pct, 2),
-        "status": status or "ok",
-    }
 
 
 async def build_macro_snapshot(as_of: datetime) -> MarketGroupSnapshot:
@@ -145,7 +177,6 @@ def _build_macro_metrics(
             YFINANCE_SYMBOLS["US10Y"],
             us10y_quote,
             _format_percent,
-            transform=_tnx_to_percent,
         ),
         _metric_from_quote(
             "DXY",
@@ -260,9 +291,7 @@ def _build_spread_metric(
             change_pct=None,
         )
 
-    spread_bps = (
-        _tnx_to_percent(us10y_quote.value) - _tnx_to_percent(us2y_quote.value)
-    ) * 100
+    spread_bps = (us10y_quote.value - us2y_quote.value) * 100
     return _build_metric(
         name="2Y-10Y Spread",
         symbol=f"{US2Y_SYMBOL}/{YFINANCE_SYMBOLS['US10Y']}",
@@ -300,23 +329,35 @@ def _build_metric(
     display: str | None = None,
     status: str | None = None,
 ) -> MarketMetric:
-    return MarketMetric(
-        **normalize_metric(
+    if value is None:
+        return MarketMetric(
             name=name,
             symbol=symbol,
-            value=value,
-            change_pct=change_pct,
-            display=display,
-            status=status,
+            value=None,
+            display=None,
+            change_pct=None if change_pct is None else round(change_pct, 2),
+            status=status or "unavailable",
         )
+
+    rounded_value = round(value, 4)
+    return MarketMetric(
+        name=name,
+        symbol=symbol,
+        value=rounded_value,
+        display=display or f"{rounded_value:.2f}",
+        change_pct=None if change_pct is None else round(change_pct, 2),
+        status=status or "ok",
     )
 
 
 async def _safe_fetch_quote(symbol: str) -> QuoteSnapshot | None:
-    async with _YFINANCE_SEMAPHORE:
-        for attempt in range(YFINANCE_RETRY_ATTEMPTS):
+    async with _FETCH_SEMAPHORE:
+        for attempt in range(FETCH_RETRY_ATTEMPTS):
             try:
-                result = await _fetch_quote(symbol)
+                result = await asyncio.wait_for(
+                    asyncio.to_thread(_load_quote_snapshot, symbol),
+                    timeout=FETCH_OVERALL_TIMEOUT_SECONDS,
+                )
                 if result is not None:
                     return result
             except Exception as exc:
@@ -324,40 +365,120 @@ async def _safe_fetch_quote(symbol: str) -> QuoteSnapshot | None:
                     "Failed to fetch public board metric %s (attempt %d/%d): %s",
                     symbol,
                     attempt + 1,
-                    YFINANCE_RETRY_ATTEMPTS,
+                    FETCH_RETRY_ATTEMPTS,
                     exc,
                 )
-                if attempt < YFINANCE_RETRY_ATTEMPTS - 1:
-                    wait = YFINANCE_RETRY_BACKOFF[attempt]
+                if attempt < FETCH_RETRY_ATTEMPTS - 1:
+                    wait = FETCH_RETRY_BACKOFF[attempt]
                     logger.info("Retrying %s in %d seconds...", symbol, wait)
                     await asyncio.sleep(wait)
         return None
 
 
-async def _fetch_quote(symbol: str) -> QuoteSnapshot | None:
-    result = await asyncio.wait_for(
-        asyncio.to_thread(_load_quote_snapshot, symbol),
-        timeout=YFINANCE_FETCH_TIMEOUT_SECONDS,
-    )
-    await asyncio.sleep(YFINANCE_REQUEST_DELAY)
-    return result
-
-
 def _load_quote_snapshot(symbol: str) -> QuoteSnapshot | None:
+    with _no_proxy_env():
+        if symbol in AKSHARE_TREASURY_SYMBOLS:
+            return _load_treasury_quote(symbol)
+
+        if symbol == YFINANCE_SYMBOLS["BTC"]:
+            import akshare as ak
+            result = _load_btc_quote(ak)
+            if result is not None:
+                return result
+
+        if symbol in YAHOO_CHART_SYMBOLS:
+            return _load_yahoo_quote(symbol)
+
+        return _load_global_index_quote_cached(symbol)
+
+
+def _load_treasury_quote(symbol: str) -> QuoteSnapshot | None:
     import akshare as ak
 
-    # 当前环境的 akshare 无 index_investing_global；使用可用的实时接口。
-    # 部分指标（如美债、VIX、黄金、WTI）在该接口下可能缺失，返回 None 由上层标记 unavailable。
-    if symbol in (YFINANCE_SYMBOLS["US10Y"], US2Y_SYMBOL, YFINANCE_SYMBOLS["GOLD"], YFINANCE_SYMBOLS["WTI"]):
+    ak_name = AKSHARE_TREASURY_SYMBOLS.get(symbol)
+    if ak_name is None:
         return None
 
-    if symbol == YFINANCE_SYMBOLS["BTC"]:
-        return _load_btc_quote(ak)
+    try:
+        df = _get_cached_treasury_df(ak, symbol)
+    except Exception as exc:
+        logger.debug("akshare bond_gb_us_sina failed for %s: %s", symbol, exc)
+        return None
 
-    return _load_global_index_quote(ak, symbol)
+    if df is None or df.empty:
+        return None
+
+    last_row = df.iloc[-1]
+    close = _to_float(last_row.get("close"))
+    if close is None:
+        return None
+
+    if len(df) >= 2:
+        prev_close = _to_float(df.iloc[-2].get("close"))
+        change_pct = ((close - prev_close) / prev_close * 100) if prev_close else None
+    else:
+        change_pct = None
+
+    previous = None if change_pct in (None, -100.0) else close / (1 + change_pct / 100)
+    return QuoteSnapshot(value=close, previous_value=previous, change_pct=change_pct)
 
 
-def _load_global_index_quote(ak: Any, symbol: str) -> QuoteSnapshot | None:
+def _get_cached_treasury_df(ak: Any, symbol: str) -> pd.DataFrame:
+    global _AKSHARE_TREASURY_CACHE
+
+    now = datetime.now(UTC)
+    with _AKSHARE_CACHE_LOCK:
+        cached = _AKSHARE_TREASURY_CACHE.get(symbol)
+        if cached is not None:
+            df, ts = cached
+            if (now - ts).total_seconds() < AKSHARE_CACHE_TTL_SECONDS:
+                return df
+
+        try:
+            df = ak.bond_gb_us_sina(symbol=AKSHARE_TREASURY_SYMBOLS[symbol])
+            _AKSHARE_TREASURY_CACHE[symbol] = (df, now)
+            return df
+        except Exception:
+            _AKSHARE_TREASURY_CACHE[symbol] = (pd.DataFrame(), now)
+            raise
+
+
+def _load_yahoo_quote(symbol: str) -> QuoteSnapshot | None:
+    session = _get_no_proxy_session()
+    url = f"{YAHOO_BASE_URL}/{_requests.utils.quote(symbol)}"
+    params = {"range": "2d", "interval": "1d"}
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    try:
+        resp = session.get(url, params=params, headers=headers, timeout=YAHOO_FETCH_TIMEOUT_SECONDS)
+        if resp.status_code != 200:
+            logger.debug("Yahoo Finance returned %d for %s", resp.status_code, symbol)
+            return None
+        data = resp.json()
+    except Exception as exc:
+        logger.debug("Yahoo Finance request failed for %s: %s", symbol, exc)
+        return None
+
+    try:
+        result = data.get("chart", {}).get("result", [])
+        if not result:
+            return None
+        meta = result[0].get("meta", {})
+        price = meta.get("regularMarketPrice")
+        prev = meta.get("chartPreviousClose")
+        if price is None:
+            return None
+        change_pct = ((price - prev) / prev * 100) if prev else None
+        previous = None if change_pct in (None, -100.0) else price / (1 + change_pct / 100)
+        return QuoteSnapshot(value=float(price), previous_value=previous, change_pct=change_pct)
+    except (KeyError, IndexError, TypeError) as exc:
+        logger.debug("Yahoo Finance parse failed for %s: %s", symbol, exc)
+        return None
+
+
+def _load_global_index_quote_cached(symbol: str) -> QuoteSnapshot | None:
+    import akshare as ak
+
     try:
         df = _get_cached_global_index_df(ak)
     except Exception as exc:
@@ -447,8 +568,7 @@ def _to_float(value: Any) -> float | None:
 
 
 def _get_cached_global_index_df(ak: Any) -> pd.DataFrame:
-    global _AKSHARE_GLOBAL_INDEX_CACHE
-    global _AKSHARE_GLOBAL_INDEX_CACHE_AT
+    global _AKSHARE_GLOBAL_INDEX_CACHE, _AKSHARE_GLOBAL_INDEX_CACHE_AT
 
     now = datetime.now(UTC)
     with _AKSHARE_CACHE_LOCK:
@@ -460,24 +580,19 @@ def _get_cached_global_index_df(ak: Any) -> pd.DataFrame:
         ):
             return _AKSHARE_GLOBAL_INDEX_CACHE
 
-    try:
-        df = ak.index_global_spot_em()
-    except Exception:
-        # 缓存失败结果，避免同一轮快照内重复触发上游请求风暴
-        with _AKSHARE_CACHE_LOCK:
+        try:
+            df = ak.index_global_spot_em()
+            _AKSHARE_GLOBAL_INDEX_CACHE = df
+            _AKSHARE_GLOBAL_INDEX_CACHE_AT = now
+            return df
+        except Exception:
             _AKSHARE_GLOBAL_INDEX_CACHE = pd.DataFrame()
             _AKSHARE_GLOBAL_INDEX_CACHE_AT = now
-        raise
-
-    with _AKSHARE_CACHE_LOCK:
-        _AKSHARE_GLOBAL_INDEX_CACHE = df
-        _AKSHARE_GLOBAL_INDEX_CACHE_AT = now
-    return df
+            raise
 
 
 def _get_cached_crypto_df(ak: Any) -> pd.DataFrame:
-    global _AKSHARE_CRYPTO_CACHE
-    global _AKSHARE_CRYPTO_CACHE_AT
+    global _AKSHARE_CRYPTO_CACHE, _AKSHARE_CRYPTO_CACHE_AT
 
     now = datetime.now(UTC)
     with _AKSHARE_CACHE_LOCK:
@@ -489,22 +604,15 @@ def _get_cached_crypto_df(ak: Any) -> pd.DataFrame:
         ):
             return _AKSHARE_CRYPTO_CACHE
 
-    try:
-        df = ak.crypto_js_spot()
-    except Exception:
-        with _AKSHARE_CACHE_LOCK:
+        try:
+            df = ak.crypto_js_spot()
+            _AKSHARE_CRYPTO_CACHE = df
+            _AKSHARE_CRYPTO_CACHE_AT = now
+            return df
+        except Exception:
             _AKSHARE_CRYPTO_CACHE = pd.DataFrame()
             _AKSHARE_CRYPTO_CACHE_AT = now
-        raise
-
-    with _AKSHARE_CACHE_LOCK:
-        _AKSHARE_CRYPTO_CACHE = df
-        _AKSHARE_CRYPTO_CACHE_AT = now
-    return df
-
-
-def _tnx_to_percent(value: float) -> float:
-    return value / 10
+            raise
 
 
 def _format_number(value: float) -> str:
@@ -515,5 +623,4 @@ def _format_percent(value: float) -> str:
     return f"{value:.2f}%"
 
 
-def _format_fx(value: float) -> str:
-    return f"{value:.4f}"
+

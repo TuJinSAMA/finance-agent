@@ -152,7 +152,32 @@ def test_refresh_market_macro_snapshot_writes_cache_key(
     assert redis.last_ttl == 45 * 60
 
 
-def test_refresh_market_macro_snapshot_closes_internal_redis_client(
+def test_get_scheduler_redis_reuses_connection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    redis = FakeRedis()
+
+    monkeypatch.setattr(
+        scheduler_module.Redis,
+        "from_url",
+        lambda *args, **kwargs: redis,
+    )
+    monkeypatch.setattr(scheduler_module, "_scheduler_redis", None, raising=False)
+
+    import asyncio
+
+    result1 = asyncio.run(scheduler_module.get_scheduler_redis())
+    result2 = asyncio.run(scheduler_module.get_scheduler_redis())
+
+    assert result1 is result2
+    assert redis.pinged is True
+    assert redis.closed is False
+
+    asyncio.run(scheduler_module.close_scheduler_redis())
+    assert redis.closed is True
+
+
+def test_refresh_market_macro_snapshot_uses_shared_redis(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     snapshot = build_snapshot(as_of=datetime(2026, 4, 20, 10, 30, tzinfo=UTC))
@@ -171,13 +196,14 @@ def test_refresh_market_macro_snapshot_closes_internal_redis_client(
         "from_url",
         lambda *args, **kwargs: redis,
     )
+    monkeypatch.setattr(scheduler_module, "_scheduler_redis", None, raising=False)
 
     import asyncio
 
     asyncio.run(scheduler_module.refresh_market_macro_snapshot())
 
     assert redis.pinged is True
-    assert redis.closed is True
+    assert redis.closed is False
     assert redis.last_key == public_market_cache.snapshot_cache_key("macro")
     assert redis.last_ttl == 45 * 60
 
