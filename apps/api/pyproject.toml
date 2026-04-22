@@ -30,6 +30,7 @@ dependencies = [
     "rank_bm25>=0.2",
     "sse-starlette>=1.6",
     "stockstats",
+    "langgraph-checkpoint-sqlite>=3.0.3",
 ]
 
 [dependency-groups]
