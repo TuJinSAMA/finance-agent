@@ -33,9 +33,7 @@ def create_bear_researcher(llm, bear_memory):
                 f"- {m['recommendation']}" for m in memories
             )
 
-        history = investment_debate_state.get("history", "")
         bull_history = investment_debate_state.get("bull_history", "")
-        bear_history = investment_debate_state.get("bear_history", "")
 
         message_content = (
             f"{BEAR_SYSTEM_PROMPT}\n\n"

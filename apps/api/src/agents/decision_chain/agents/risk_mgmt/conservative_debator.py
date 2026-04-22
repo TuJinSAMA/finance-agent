@@ -23,7 +23,6 @@ def create_conservative_debator(llm):
         trader_plan = state.get("trader_investment_plan", "")
 
         aggressive_history = risk_debate_state.get("aggressive_history", "")
-        conservative_history = risk_debate_state.get("conservative_history", "")
         neutral_history = risk_debate_state.get("neutral_history", "")
         history = risk_debate_state.get("history", "")
 

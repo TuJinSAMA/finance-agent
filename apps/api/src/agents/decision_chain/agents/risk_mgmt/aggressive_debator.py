@@ -19,14 +19,12 @@ def create_aggressive_debator(llm):
     def aggressive_debator_node(state):
         company_name = state["company_of_interest"]
         risk_debate_state = state.get("risk_debate_state", {})
-        latest_speaker = risk_debate_state.get("latest_speaker", "")
         investment_plan = state.get("investment_plan", "")
         trader_plan = state.get("trader_investment_plan", "")
 
-        aggressive_history = risk_debate_state.get("aggressive_history", "")
+        history = risk_debate_state.get("history", "")
         conservative_history = risk_debate_state.get("conservative_history", "")
         neutral_history = risk_debate_state.get("neutral_history", "")
-        history = risk_debate_state.get("history", "")
 
         message_content = (
             f"{AGGRESSIVE_SYSTEM_PROMPT}\n\n"

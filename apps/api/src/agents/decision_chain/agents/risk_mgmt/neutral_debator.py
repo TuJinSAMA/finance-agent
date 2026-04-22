@@ -24,7 +24,6 @@ def create_neutral_debator(llm):
 
         aggressive_history = risk_debate_state.get("aggressive_history", "")
         conservative_history = risk_debate_state.get("conservative_history", "")
-        neutral_history = risk_debate_state.get("neutral_history", "")
         history = risk_debate_state.get("history", "")
 
         message_content = (
