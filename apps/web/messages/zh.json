@@ -6,6 +6,7 @@
     "signUp": "注册",
     "dashboard": "推荐页",
     "portfolio": "我的持仓",
+    "chat": "AI 对话",
     "reports": "研报"
   },
   "hero": {
@@ -147,6 +148,9 @@
     "unavailable": "看板暂不可用",
     "sectionUnavailable": "该分区暂时不可用，请稍后重试。",
     "noChange": "无变化"
+  },
+  "chat": {
+    "title": "AI 对话"
   },
   "portfolio": {
     "title": "我的持仓",

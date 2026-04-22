@@ -11,6 +11,7 @@ from src.core.middleware import RequestLoggingMiddleware
 from src.core.redis import redis_manager
 from src.routers import (
     admin,
+    chat,
     decision_chain,
     notifications,
     portfolio,
@@ -60,6 +61,7 @@ app.include_router(admin.router, prefix=settings.API_V1_PREFIX)
 app.include_router(public.router, prefix=settings.API_V1_PREFIX)
 app.include_router(webhooks.router, prefix="/api")
 app.include_router(decision_chain.router, prefix=settings.API_V1_PREFIX)
+app.include_router(chat.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health")

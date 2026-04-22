@@ -13,6 +13,17 @@ from src.schemas.recommendation import (
     RecommendationListResponse,
     RecommendationRead,
 )
+from src.schemas.chat import (
+    ChatMessageCreate,
+    ChatMessageListRead,
+    ChatMessageRead,
+    ChatSessionCreate,
+    ChatSessionListRead,
+    ChatSessionRead,
+    ChatSessionUpdate,
+    ContextUsageRead,
+    SSEEvent,
+)
 from src.schemas.user import UserCreate, UserRead, UserUpdate
 
 __all__ = [
@@ -30,4 +41,13 @@ __all__ = [
     "HoldingRead",
     "HoldingUpdate",
     "AlertRead",
+    "ChatSessionCreate",
+    "ChatSessionUpdate",
+    "ChatSessionRead",
+    "ChatSessionListRead",
+    "ChatMessageCreate",
+    "ChatMessageRead",
+    "ChatMessageListRead",
+    "ContextUsageRead",
+    "SSEEvent",
 ]

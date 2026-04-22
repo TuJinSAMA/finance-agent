@@ -6,6 +6,7 @@
     "signUp": "Sign Up",
     "dashboard": "Recommendations",
     "portfolio": "Portfolio",
+    "chat": "Chat",
     "reports": "Reports"
   },
   "hero": {
@@ -147,6 +148,9 @@
     "unavailable": "Board unavailable",
     "sectionUnavailable": "This section is temporarily unavailable. Please try again.",
     "noChange": "No change"
+  },
+  "chat": {
+    "title": "AI Chat"
   },
   "portfolio": {
     "title": "My Holdings",

@@ -10,6 +10,8 @@ from src.models.stock import (
     StockFundamental,
     StockTechnicalIndicator,
 )
+from src.models.chat_message import ChatMessage
+from src.models.chat_session import ChatSession
 from src.models.user import User
 from src.models.watchlist import Watchlist, WatchlistSnapshot
 
@@ -32,4 +34,6 @@ __all__ = [
     "PortfolioAlert",
     "JobExecutionLog",
     "MarketMetricValue",
+    "ChatSession",
+    "ChatMessage",
 ]

@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   Briefcase,
+  MessageCircle,
   Bell,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -16,12 +17,14 @@ import { useUnreadCount } from "@/hooks/useNotifications";
 const navItems = [
   { icon: LayoutDashboard, href: "/recommendations", labelKey: "dashboard" },
   { icon: Briefcase, href: "/recommendations/portfolio", labelKey: "portfolio" },
+  { icon: MessageCircle, href: "/recommendations/chat", labelKey: "chat" },
 ];
 
 function usePageTitle() {
   const pathname = usePathname();
   const t = useTranslations();
   if (pathname === "/recommendations/portfolio") return t("portfolio.title");
+  if (pathname.includes("/recommendations/chat")) return t("chat.title");
   return t("dashboard.title");
 }
 
