@@ -40,3 +40,13 @@ class PublicMarketBoardResponse(BaseModel):
     custom: list[MarketMetric]
     as_of: datetime
     source: str
+
+
+class MetricDataPoint(BaseModel):
+    as_of: datetime
+    value: float | None
+    change_pct: float | None
+
+
+class MetricHistoryResponse(BaseModel):
+    metrics: dict[str, list[MetricDataPoint]]

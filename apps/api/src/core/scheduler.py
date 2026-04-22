@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from collections.abc import Callable
+
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
@@ -10,6 +10,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from redis.asyncio import Redis
 
 from src.core.config import settings
+from src.core.database import async_session
+from src.services.market_metric_store import MarketMetricService
 from src.services.public_board import build_assets_snapshot
 from src.services.public_board import build_crypto_snapshot
 from src.services.public_board import build_equity_snapshot
@@ -118,6 +120,9 @@ async def refresh_crypto_snapshot(redis: Redis | None = None) -> None:
     cache = redis or await get_scheduler_redis()
     snapshot = await build_crypto_snapshot(datetime.now(UTC))
     await write_market_snapshot(cache, snapshot)
+    async with async_session() as db:
+        service = MarketMetricService(db)
+        await service.persist_group_metrics(snapshot)
     logger.info("Refreshed public market crypto snapshot")
 
 
@@ -125,6 +130,9 @@ async def refresh_extended_snapshot(redis: Redis | None = None) -> None:
     cache = redis or await get_scheduler_redis()
     snapshot = await build_extended_snapshot(datetime.now(UTC))
     await write_market_snapshot(cache, snapshot)
+    async with async_session() as db:
+        service = MarketMetricService(db)
+        await service.persist_group_metrics(snapshot)
     logger.info("Refreshed public market extended snapshot")
 
 
@@ -132,6 +140,9 @@ async def refresh_equity_snapshot(redis: Redis | None = None) -> None:
     cache = redis or await get_scheduler_redis()
     snapshot = await build_equity_snapshot(datetime.now(UTC))
     await write_market_snapshot(cache, snapshot)
+    async with async_session() as db:
+        service = MarketMetricService(db)
+        await service.persist_group_metrics(snapshot)
     logger.info("Refreshed public market equity snapshot")
 
 
@@ -149,44 +160,41 @@ async def refresh_market_assets_snapshot(redis: Redis | None = None) -> None:
     logger.info("Refreshed public market assets snapshot")
 
 
-def _make_self_adjusting_job(group: str) -> Callable[[], None]:
-    def job() -> None:
-        session = _current_session()
+def _self_adjusting_job(group: str) -> None:
+    session = _current_session()
 
-        if group == "equity" and session == "weekend":
-            logger.debug("Skipping equity refresh — weekend")
-            return
+    if group == "equity" and session == "weekend":
+        logger.debug("Skipping equity refresh — weekend")
+        return
 
-        if group == "crypto":
-            asyncio.run(refresh_crypto_snapshot())
-        elif group == "extended":
-            asyncio.run(refresh_extended_snapshot())
-        elif group == "equity":
-            asyncio.run(refresh_equity_snapshot())
+    if group == "crypto":
+        asyncio.run(refresh_crypto_snapshot())
+    elif group == "extended":
+        asyncio.run(refresh_extended_snapshot())
+    elif group == "equity":
+        asyncio.run(refresh_equity_snapshot())
 
-        next_minutes = INTERVAL_MAP[group][session]
-        scheduler.reschedule_job(
-            f"refresh_{group}",
-            trigger="interval",
-            minutes=next_minutes,
-        )
-        logger.info(
-            "Refreshed %s snapshot, next run in %d min (session=%s)",
-            group, next_minutes, session,
-        )
-
-    return job
+    next_minutes = INTERVAL_MAP[group][session]
+    scheduler.reschedule_job(
+        f"refresh_{group}",
+        trigger="interval",
+        minutes=next_minutes,
+    )
+    logger.info(
+        "Refreshed %s snapshot, next run in %d min (session=%s)",
+        group, next_minutes, session,
+    )
 
 
 def register_public_market_jobs() -> None:
     for group, minutes in INITIAL_INTERVALS.items():
         job_id = f"refresh_{group}"
-        wrapper = _make_self_adjusting_job(group)
         scheduler.add_job(
-            wrapper,
+            _self_adjusting_job,
             "interval",
             minutes=minutes,
             id=job_id,
             replace_existing=True,
+            args=[group],
         )
         logger.info("Registered %s job (initial interval: %d min)", job_id, minutes)

@@ -8,6 +8,7 @@ from src.core.auth import get_current_user
 from src.core.database import get_db
 from src.core.redis import redis_manager
 from src.models.user import User
+from src.services.market_metric_store import MarketMetricService
 from src.services.portfolio import PortfolioService
 from src.services.user import UserService
 
@@ -24,10 +25,15 @@ def get_portfolio_service(db: DBSession) -> PortfolioService:
     return PortfolioService(db)
 
 
+def get_market_metric_service(db: DBSession) -> MarketMetricService:
+    return MarketMetricService(db)
+
+
 def get_redis() -> Redis:
     return redis_manager.redis
 
 
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 PortfolioServiceDep = Annotated[PortfolioService, Depends(get_portfolio_service)]
+MarketMetricServiceDep = Annotated[MarketMetricService, Depends(get_market_metric_service)]
 RedisDep = Annotated[Redis, Depends(get_redis)]

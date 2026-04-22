@@ -1,11 +1,13 @@
 import asyncio
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
-from src.dependencies import RedisDep
+from src.dependencies import MarketMetricServiceDep, RedisDep
 from src.schemas.public_board import MarketGroupSnapshot
 from src.schemas.public_board import MarketMetric
+from src.schemas.public_board import MetricHistoryResponse
 from src.services.public_board import ASSET_ITEM_NAMES_FROM_EXTENDED
 from src.services.public_board import SOURCE_NAME
 from src.services.public_market_cache import classify_snapshot_status
@@ -107,3 +109,17 @@ async def get_market_macro(redis: RedisDep) -> MarketGroupSnapshot:
 @router.get("/market-assets", response_model=MarketGroupSnapshot)
 async def get_market_assets(redis: RedisDep) -> MarketGroupSnapshot:
     return await _compose_assets_snapshot(redis)
+
+
+@router.get("/market-metrics/history", response_model=MetricHistoryResponse)
+async def get_market_metric_history(
+    service: MarketMetricServiceDep,
+    name: Annotated[list[str], Query(alias="name")],
+    from_dt: datetime | None = None,
+    to_dt: datetime | None = None,
+) -> MetricHistoryResponse:
+    now = datetime.now(UTC)
+    start = from_dt or (now - timedelta(days=7))
+    end = to_dt or now
+    metrics = await service.query_metric_history(name, start, end)
+    return MetricHistoryResponse(metrics=metrics)
