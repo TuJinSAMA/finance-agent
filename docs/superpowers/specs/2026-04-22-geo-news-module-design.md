@@ -151,7 +151,7 @@ Three levels, evaluated from an investor's perspective — does this event affec
 - Must assign region from the predefined enum
 - Must determine time_sensitivity (hours/days/weeks)
 - Preserve original article language in title and summary
-- Model: `anthropic/claude-3-haiku` (via OpenRouter) for cost efficiency
+- Model: `google/gemini-3.1-flash-lite-preview` (via OpenRouter) for cost efficiency
 
 ## API Endpoints
 
@@ -273,7 +273,7 @@ class GeoNewsConfig:
     gdelt_max_articles: int = 50  # Max articles per fetch
     
     # Extraction
-    llm_model: str = "anthropic/claude-3-haiku"
+    llm_model: str = "google/gemini-3.1-flash-lite-preview"
     batch_size: int = 10
     dedup_threshold: float = 0.7
     extraction_interval_minutes: int = 10
@@ -294,7 +294,7 @@ class GeoNewsConfig:
 
 ## LLM Cost Estimate
 
-- Model: Claude Haiku via OpenRouter (~$0.25/1M input tokens, ~$1.25/1M output tokens)
+- Model: Google Gemini 3.1 Flash Lite Preview via OpenRouter
 - Per batch: ~2000 input tokens, ~500 output tokens
 - Daily volume: ~200-500 raw articles → 20-50 LLM calls
 - Daily cost: < $0.01
