@@ -136,6 +136,10 @@ The router receives the last 3 messages as context to handle follow-ups like "te
 
 Invokes `TradingDecisionChain` with SSE event mapping. Each `stage_update` from the existing pipeline is forwarded to the client. The `final_decision` is formatted and returned.
 
+### Format Pipeline Result
+
+A simple node that converts `final_trade_decision` and `rating` from the pipeline output into a structured assistant message suitable for chat display. This message is stored in the DB as a `chat_message` with `role="assistant"` and includes the decision text, rating, and ticker in a formatted summary.
+
 ### Chat Node
 
 Simple LLM call using `quick_think_llm` with the conversation history. For general Q&A about stocks, markets, or follow-up discussion about pipeline results.
@@ -148,7 +152,7 @@ Simple LLM call using `quick_think_llm` with the conversation history. For gener
 
 ### Auto Title
 
-When a session receives its first assistant reply, the title is auto-generated from the first 30 characters of the response (truncated at word boundary). User can always rename.
+When a session receives its first assistant reply, the title is auto-generated from the first user message's first 30 characters (truncated at word boundary). This works for both chat and pipeline modes. User can always rename via `PATCH /sessions/{id}`.
 
 ---
 
