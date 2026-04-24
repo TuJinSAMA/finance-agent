@@ -13,9 +13,12 @@ from src.models.stock import (
 from src.models.chat_message import ChatMessage
 from src.models.chat_session import ChatSession
 from src.models.user import User
+from src.models.geo_event import GeoEvent, RawGeoArticle
 from src.models.watchlist import Watchlist, WatchlistSnapshot
 
 __all__ = [
+    "GeoEvent",
+    "RawGeoArticle",
     "Base",
     "TimestampMixin",
     "UUIDMixin",
@@ -36,4 +39,6 @@ __all__ = [
     "MarketMetricValue",
     "ChatSession",
     "ChatMessage",
+    "GeoEvent",
+    "RawGeoArticle",
 ]

@@ -147,7 +147,24 @@
     "loginCta": "登录查看推荐",
     "unavailable": "看板暂不可用",
     "sectionUnavailable": "该分区暂时不可用，请稍后重试。",
-    "noChange": "无变化"
+    "noChange": "无变化",
+    "geoNews": {
+      "eyebrow": "地缘政治事件",
+      "title": "今日地缘局势",
+      "unavailable": "暂无地缘政治事件",
+      "loading": "加载中...",
+      "sectionUnavailable": "地缘政治事件暂不可用，请稍后重试。",
+      "lastUpdated": "更新时间",
+      "activeEvents": "条活跃事件",
+      "highImpact": "高影响",
+      "mediumImpact": "中等影响",
+      "allEvents": "全部事件",
+      "filterHighImpact": "仅高影响",
+      "source": "来源",
+      "region": "地区",
+      "categories": "分类",
+      "readOriginal": "查看原文"
+    }
   },
   "chat": {
     "title": "AI 对话"

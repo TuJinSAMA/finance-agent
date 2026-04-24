@@ -31,6 +31,8 @@ dependencies = [
     "sse-starlette>=1.6",
     "stockstats",
     "langgraph-checkpoint-sqlite>=3.0.3",
+    "feedparser>=6.0.12",
+    "python-dateutil>=2.9.0.post0",
 ]
 
 [dependency-groups]

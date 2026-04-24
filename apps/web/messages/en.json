@@ -147,7 +147,24 @@
     "loginCta": "Sign in to view recommendations",
     "unavailable": "Board unavailable",
     "sectionUnavailable": "This section is temporarily unavailable. Please try again.",
-    "noChange": "No change"
+    "noChange": "No change",
+    "geoNews": {
+      "eyebrow": "Geopolitical events",
+      "title": "Today's geopolitical landscape",
+      "unavailable": "No geopolitical events available",
+      "loading": "Loading events...",
+      "sectionUnavailable": "Geopolitical events are temporarily unavailable.",
+      "lastUpdated": "Last updated",
+      "activeEvents": "active events",
+      "highImpact": "High Impact",
+      "mediumImpact": "Medium Impact",
+      "allEvents": "All Events",
+      "filterHighImpact": "High Impact Only",
+      "source": "Source",
+      "region": "Region",
+      "categories": "Categories",
+      "readOriginal": "Read original"
+    }
   },
   "chat": {
     "title": "AI Chat"

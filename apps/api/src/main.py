@@ -13,6 +13,7 @@ from src.routers import (
     admin,
     chat,
     decision_chain,
+    geo_news,
     notifications,
     portfolio,
     public,
@@ -62,6 +63,7 @@ app.include_router(public.router, prefix=settings.API_V1_PREFIX)
 app.include_router(webhooks.router, prefix="/api")
 app.include_router(decision_chain.router, prefix=settings.API_V1_PREFIX)
 app.include_router(chat.router, prefix=settings.API_V1_PREFIX)
+app.include_router(geo_news.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health")

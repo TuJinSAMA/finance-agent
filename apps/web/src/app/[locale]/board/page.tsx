@@ -4,6 +4,7 @@ import { AlertCircle, ArrowRight, Loader2, LogIn } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useApi } from "@/hooks/useApi";
 import type { MarketGroupSnapshotResponse, MarketMetric } from "@/types/api";
+import GeoNewsSection from "@/components/geo-news/GeoNewsSection";
 import { Link } from "../../../../navigation";
 
 type BoardCopy = {
@@ -467,6 +468,7 @@ export default function BoardPage(): React.JSX.Element {
                 retryLabel={boardT("retry")}
               />
             )}
+            <GeoNewsSection />
             {snapshots.assets ? (
               <MetricSection snapshot={snapshots.assets} copy={copy} locale={locale} />
             ) : assetsSnapshot.loading ? (

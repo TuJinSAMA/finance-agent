@@ -32,6 +32,8 @@ class Settings(BaseSettings):
 
     TUSHARE_TOKEN: str = ""
 
+    GNEWS_API_KEY: str = ""
+
     @property
     def DATABASE_URL_SYNC(self) -> str:
         """Sync DB URL for libraries that don't support asyncpg (e.g. APScheduler)."""
