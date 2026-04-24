@@ -56,9 +56,9 @@ def weekly_sync_job():
 
 async def _daily_quotes_async(log_id: int | None):
     from src.agents.data_agent.fetcher import DataAgent
-    from src.core.database import async_session
+    from src.core.database import job_async_session
 
-    async with async_session() as session:
+    async with job_async_session() as session:
         try:
             agent = DataAgent(session)
             count = await agent.fetch_daily_quotes(trade_date=date.today())
@@ -72,12 +72,12 @@ async def _daily_quotes_async(log_id: int | None):
 
 async def _technical_indicators_async(log_id: int | None):
     from src.agents.data_agent.indicators import compute_and_store_indicators
-    from src.core.database import async_session
+    from src.core.database import job_async_session
     from src.models.stock import Stock
 
     BATCH_SIZE = 200
 
-    async with async_session() as session:
+    async with job_async_session() as session:
         result = await session.execute(select(Stock.id).order_by(Stock.id))
         stock_ids = [row[0] for row in result.all()]
 
@@ -88,7 +88,7 @@ async def _technical_indicators_async(log_id: int | None):
     try:
         for batch_start in range(0, total, BATCH_SIZE):
             batch = stock_ids[batch_start: batch_start + BATCH_SIZE]
-            async with async_session() as session:
+            async with job_async_session() as session:
                 try:
                     for stock_id in batch:
                         ok = await compute_and_store_indicators(session, stock_id, today)
@@ -121,9 +121,9 @@ async def _technical_indicators_async(log_id: int | None):
 async def _weekly_sync_async(log_id: int | None):
     from src.agents.data_agent.fetcher import DataAgent
     from src.agents.data_agent.fundamentals import fetch_fundamentals_full
-    from src.core.database import async_session
+    from src.core.database import job_async_session
 
-    async with async_session() as session:
+    async with job_async_session() as session:
         try:
             agent = DataAgent(session)
             await agent.sync_stock_list()
@@ -135,7 +135,7 @@ async def _weekly_sync_async(log_id: int | None):
             JobLogger.fail(log_id, str(exc))
             return
 
-    async with async_session() as session:
+    async with job_async_session() as session:
         try:
             await fetch_fundamentals_full(session)
             logger.info("weekly_sync_job completed (including full fundamentals)")

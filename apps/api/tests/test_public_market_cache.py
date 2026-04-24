@@ -177,31 +177,6 @@ def test_refresh_crypto_snapshot_writes_cache_key(
     assert redis.last_ttl == 30 * 60
 
 
-def test_get_scheduler_redis_reuses_connection(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    redis = FakeRedis()
-
-    monkeypatch.setattr(
-        scheduler_module.Redis,
-        "from_url",
-        lambda *args, **kwargs: redis,
-    )
-    monkeypatch.setattr(scheduler_module, "_scheduler_redis", None, raising=False)
-
-    import asyncio
-
-    result1 = asyncio.run(scheduler_module.get_scheduler_redis())
-    result2 = asyncio.run(scheduler_module.get_scheduler_redis())
-
-    assert result1 is result2
-    assert redis.pinged is True
-    assert redis.closed is False
-
-    asyncio.run(scheduler_module.close_scheduler_redis())
-    assert redis.closed is True
-
-
 def test_register_public_market_jobs_replaces_existing_jobs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -323,10 +298,10 @@ class TestSelfAdjustingJob:
         calls: list[str] = []
         reschedule_calls: list[dict[str, object]] = []
 
-        async def fake_refresh_equity(redis=None) -> None:
-            calls.append("equity")
+        async def fake_run_refresh(group: str) -> None:
+            calls.append(group)
 
-        monkeypatch.setattr(scheduler_module, "refresh_equity_snapshot", fake_refresh_equity)
+        monkeypatch.setattr(scheduler_module, "_run_refresh", fake_run_refresh)
         monkeypatch.setattr(scheduler_module, "_now_et", lambda: datetime(2026, 4, 18, 12, 0, tzinfo=scheduler_module.ET))
 
         class FakeScheduler:
@@ -347,10 +322,10 @@ class TestSelfAdjustingJob:
         calls: list[str] = []
         reschedule_calls: list[dict[str, object]] = []
 
-        async def fake_refresh_crypto(redis=None) -> None:
-            calls.append("crypto")
+        async def fake_run_refresh(group: str) -> None:
+            calls.append(group)
 
-        monkeypatch.setattr(scheduler_module, "refresh_crypto_snapshot", fake_refresh_crypto)
+        monkeypatch.setattr(scheduler_module, "_run_refresh", fake_run_refresh)
         monkeypatch.setattr(scheduler_module, "_now_et", lambda: datetime(2026, 4, 20, 10, 0, tzinfo=scheduler_module.ET))
 
         class FakeScheduler:
@@ -373,10 +348,10 @@ class TestSelfAdjustingJob:
         calls: list[str] = []
         reschedule_calls: list[dict[str, object]] = []
 
-        async def fake_refresh_extended(redis=None) -> None:
-            calls.append("extended")
+        async def fake_run_refresh(group: str) -> None:
+            calls.append(group)
 
-        monkeypatch.setattr(scheduler_module, "refresh_extended_snapshot", fake_refresh_extended)
+        monkeypatch.setattr(scheduler_module, "_run_refresh", fake_run_refresh)
         monkeypatch.setattr(scheduler_module, "_now_et", lambda: datetime(2026, 4, 20, 7, 0, tzinfo=scheduler_module.ET))
 
         class FakeScheduler:
@@ -399,10 +374,10 @@ class TestSelfAdjustingJob:
         calls: list[str] = []
         reschedule_calls: list[dict[str, object]] = []
 
-        async def fake_refresh_equity(redis=None) -> None:
-            calls.append("equity")
+        async def fake_run_refresh(group: str) -> None:
+            calls.append(group)
 
-        monkeypatch.setattr(scheduler_module, "refresh_equity_snapshot", fake_refresh_equity)
+        monkeypatch.setattr(scheduler_module, "_run_refresh", fake_run_refresh)
         monkeypatch.setattr(scheduler_module, "_now_et", lambda: datetime(2026, 4, 20, 10, 0, tzinfo=scheduler_module.ET))
 
         class FakeScheduler:

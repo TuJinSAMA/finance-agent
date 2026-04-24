@@ -33,6 +33,19 @@ def get_llm(
     )
 
 
+async def aclose_llm(llm: ChatOpenAI) -> None:
+    """Close the underlying async OpenAI/httpx client.
+
+    Must be called after async LLM invocations (ainvoke, astream) when
+    running inside ``asyncio.run()`` from APScheduler threads.  Without
+    this, httpx's background cleanup fires *after* ``asyncio.run()`` has
+    closed the event loop, causing ``RuntimeError: Event loop is closed``.
+    """
+    client = getattr(llm, "root_async_client", None)
+    if client is not None:
+        await client.close()
+
+
 async def chat_json(
     system_prompt: str,
     user_prompt: str,
@@ -65,6 +78,8 @@ async def chat_json(
     except Exception:
         logger.exception("LLM chat_json call failed")
         raise
+    finally:
+        await aclose_llm(llm)
 
 
 def _parse_json_response(content: str) -> dict:

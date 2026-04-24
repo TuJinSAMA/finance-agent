@@ -2,8 +2,10 @@ import asyncio
 import logging
 from threading import Event
 
+from redis.asyncio import Redis
+
 from src.core.config import settings
-from src.core.scheduler import close_scheduler_redis
+from src.core.scheduler import register_geo_news_jobs
 from src.core.scheduler import register_public_market_jobs
 from src.core.scheduler import refresh_crypto_snapshot
 from src.core.scheduler import refresh_equity_snapshot
@@ -20,9 +22,13 @@ logger = logging.getLogger(__name__)
 
 
 async def _run_startup_refreshes() -> None:
-    await refresh_crypto_snapshot()
-    await refresh_extended_snapshot()
-    await refresh_equity_snapshot()
+    redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+    try:
+        await refresh_crypto_snapshot(redis)
+        await refresh_extended_snapshot(redis)
+        await refresh_equity_snapshot(redis)
+    finally:
+        await redis.aclose()
 
 
 def main() -> None:
@@ -32,6 +38,7 @@ def main() -> None:
         logger.info("Initializing standalone scheduler")
         asyncio.run(_run_startup_refreshes())
         register_public_market_jobs()
+        register_geo_news_jobs()
         scheduler.start()
         logger.info("Standalone scheduler started")
 
@@ -41,7 +48,6 @@ def main() -> None:
     finally:
         if scheduler.running:
             scheduler.shutdown(wait=False)
-        asyncio.run(close_scheduler_redis())
 
 
 if __name__ == "__main__":

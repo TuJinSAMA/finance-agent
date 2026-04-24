@@ -32,9 +32,9 @@ def daily_screening_job():
 
 async def _daily_screening_async(log_id: int | None):
     from src.agents.orchestrator.screener import StockScreener
-    from src.core.database import async_session
+    from src.core.database import job_async_session
 
-    async with async_session() as session:
+    async with job_async_session() as session:
         try:
             screener = StockScreener()
             result = await screener.run_daily_screening(session, date.today())
@@ -66,9 +66,9 @@ def daily_recommendation_job():
 
 async def _daily_recommendation_async(log_id: int | None):
     from src.agents.orchestrator.pipeline import daily_recommendation_pipeline
-    from src.core.database import async_session
+    from src.core.database import job_async_session
 
-    async with async_session() as session:
+    async with job_async_session() as session:
         try:
             result = await daily_recommendation_pipeline(session, date.today())
             await session.commit()
@@ -101,9 +101,9 @@ def rec_performance_tracking_job():
 
 async def _rec_performance_async(log_id: int | None):
     from src.agents.orchestrator.pipeline import update_recommendation_performance
-    from src.core.database import async_session
+    from src.core.database import job_async_session
 
-    async with async_session() as session:
+    async with job_async_session() as session:
         try:
             result = await update_recommendation_performance(session, date.today())
             await session.commit()

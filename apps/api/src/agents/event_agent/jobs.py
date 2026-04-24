@@ -33,11 +33,11 @@ def morning_event_scan_job():
 async def _morning_event_scan_async(log_id: int | None):
     from src.agents.event_agent.analyzer import CatalystAnalyzer
     from src.agents.event_agent.scanner import EventScanner
-    from src.core.database import async_session
+    from src.core.database import job_async_session
     from src.models.stock import Stock
     from src.models.watchlist import Watchlist
 
-    async with async_session() as session:
+    async with job_async_session() as session:
         try:
             # 1. 获取关注池股票 ID
             watchlist_result = await session.execute(

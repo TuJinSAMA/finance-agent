@@ -1,6 +1,6 @@
 import asyncio
 import logging
-
+from collections.abc import Callable
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
@@ -9,8 +9,14 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from redis.asyncio import Redis
 
+from src.agents.geo_news_agent.jobs import (
+    extract_geo_events_job,
+    ingest_gdelt_job,
+    ingest_gnews_job,
+    ingest_rss_job,
+)
 from src.core.config import settings
-from src.core.database import async_session
+from src.models.geo_news_config import geo_news_config
 from src.services.market_metric_store import MarketMetricService
 from src.services.public_board import build_assets_snapshot
 from src.services.public_board import build_crypto_snapshot
@@ -69,8 +75,6 @@ scheduler = BackgroundScheduler(
     job_defaults=job_defaults,
 )
 
-_scheduler_redis: Redis | None = None
-
 
 class _ETDateTime(datetime):
     @classmethod
@@ -98,65 +102,58 @@ def _current_session() -> str:
     return "overnight"
 
 
-async def get_scheduler_redis() -> Redis:
-    global _scheduler_redis
-    if _scheduler_redis is None:
-        _scheduler_redis = Redis.from_url(
-            settings.REDIS_URL,
-            decode_responses=True,
-        )
-        await _scheduler_redis.ping()
-    return _scheduler_redis
+async def _run_refresh(group: str) -> None:
+    redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+    try:
+        if group == "crypto":
+            await refresh_crypto_snapshot(redis)
+        elif group == "extended":
+            await refresh_extended_snapshot(redis)
+        elif group == "equity":
+            await refresh_equity_snapshot(redis)
+    finally:
+        await redis.aclose()
 
 
-async def close_scheduler_redis() -> None:
-    global _scheduler_redis
-    if _scheduler_redis is not None:
-        await _scheduler_redis.aclose()
-        _scheduler_redis = None
-
-
-async def refresh_crypto_snapshot(redis: Redis | None = None) -> None:
-    cache = redis or await get_scheduler_redis()
+async def refresh_crypto_snapshot(redis: Redis) -> None:
     snapshot = await build_crypto_snapshot(datetime.now(UTC))
-    await write_market_snapshot(cache, snapshot)
-    async with async_session() as db:
+    await write_market_snapshot(redis, snapshot)
+    from src.core.database import job_async_session
+    async with job_async_session() as db:
         service = MarketMetricService(db)
         await service.persist_group_metrics(snapshot)
     logger.info("Refreshed public market crypto snapshot")
 
 
-async def refresh_extended_snapshot(redis: Redis | None = None) -> None:
-    cache = redis or await get_scheduler_redis()
+async def refresh_extended_snapshot(redis: Redis) -> None:
     snapshot = await build_extended_snapshot(datetime.now(UTC))
-    await write_market_snapshot(cache, snapshot)
-    async with async_session() as db:
+    await write_market_snapshot(redis, snapshot)
+    from src.core.database import job_async_session
+    async with job_async_session() as db:
         service = MarketMetricService(db)
         await service.persist_group_metrics(snapshot)
     logger.info("Refreshed public market extended snapshot")
 
 
-async def refresh_equity_snapshot(redis: Redis | None = None) -> None:
-    cache = redis or await get_scheduler_redis()
+async def refresh_equity_snapshot(redis: Redis) -> None:
     snapshot = await build_equity_snapshot(datetime.now(UTC))
-    await write_market_snapshot(cache, snapshot)
-    async with async_session() as db:
+    await write_market_snapshot(redis, snapshot)
+    from src.core.database import job_async_session
+    async with job_async_session() as db:
         service = MarketMetricService(db)
         await service.persist_group_metrics(snapshot)
     logger.info("Refreshed public market equity snapshot")
 
 
-async def refresh_market_macro_snapshot(redis: Redis | None = None) -> None:
-    cache = redis or await get_scheduler_redis()
+async def refresh_market_macro_snapshot(redis: Redis) -> None:
     snapshot = await build_macro_snapshot(datetime.now(UTC))
-    await write_market_snapshot(cache, snapshot)
+    await write_market_snapshot(redis, snapshot)
     logger.info("Refreshed public market macro snapshot")
 
 
-async def refresh_market_assets_snapshot(redis: Redis | None = None) -> None:
-    cache = redis or await get_scheduler_redis()
+async def refresh_market_assets_snapshot(redis: Redis) -> None:
     snapshot = await build_assets_snapshot(datetime.now(UTC))
-    await write_market_snapshot(cache, snapshot)
+    await write_market_snapshot(redis, snapshot)
     logger.info("Refreshed public market assets snapshot")
 
 
@@ -167,12 +164,7 @@ def _self_adjusting_job(group: str) -> None:
         logger.debug("Skipping equity refresh — weekend")
         return
 
-    if group == "crypto":
-        asyncio.run(refresh_crypto_snapshot())
-    elif group == "extended":
-        asyncio.run(refresh_extended_snapshot())
-    elif group == "equity":
-        asyncio.run(refresh_equity_snapshot())
+    asyncio.run(_run_refresh(group))
 
     next_minutes = INTERVAL_MAP[group][session]
     scheduler.reschedule_job(
@@ -184,6 +176,12 @@ def _self_adjusting_job(group: str) -> None:
         "Refreshed %s snapshot, next run in %d min (session=%s)",
         group, next_minutes, session,
     )
+
+
+def _make_self_adjusting_job(group: str) -> Callable[[], None]:
+    def job() -> None:
+        _self_adjusting_job(group)
+    return job
 
 
 def register_public_market_jobs() -> None:
@@ -198,3 +196,41 @@ def register_public_market_jobs() -> None:
             args=[group],
         )
         logger.info("Registered %s job (initial interval: %d min)", job_id, minutes)
+
+
+def register_geo_news_jobs() -> None:
+    scheduler.add_job(
+        ingest_rss_job,
+        "interval",
+        minutes=geo_news_config.rss_interval_minutes,
+        id="ingest_geo_rss",
+        replace_existing=True,
+    )
+    logger.info("Registered ingest_geo_rss job (interval: %d min)", geo_news_config.rss_interval_minutes)
+
+    scheduler.add_job(
+        ingest_gnews_job,
+        "interval",
+        hours=geo_news_config.gnews_interval_hours,
+        id="ingest_geo_gnews",
+        replace_existing=True,
+    )
+    logger.info("Registered ingest_geo_gnews job (interval: %d hours)", geo_news_config.gnews_interval_hours)
+
+    scheduler.add_job(
+        ingest_gdelt_job,
+        "interval",
+        hours=geo_news_config.gdelt_interval_hours,
+        id="ingest_geo_gdelt",
+        replace_existing=True,
+    )
+    logger.info("Registered ingest_geo_gdelt job (interval: %d hours)", geo_news_config.gdelt_interval_hours)
+
+    scheduler.add_job(
+        extract_geo_events_job,
+        "interval",
+        minutes=geo_news_config.extraction_interval_minutes,
+        id="extract_geo_events",
+        replace_existing=True,
+    )
+    logger.info("Registered extract_geo_events job (interval: %d min)", geo_news_config.extraction_interval_minutes)

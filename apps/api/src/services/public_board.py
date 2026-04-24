@@ -91,8 +91,6 @@ FETCH_RETRY_BACKOFF = [1, 2, 4]
 FETCH_REQUEST_DELAY = 0.2
 FETCH_OVERALL_TIMEOUT_SECONDS = 15.0
 
-_FETCH_SEMAPHORE = asyncio.Semaphore(FETCH_CONCURRENT_LIMIT)
-
 AKSHARE_INDEX_CODE_MAP: dict[str, list[str]] = {
     YFINANCE_SYMBOLS["SPX"]: ["SPX"],
     YFINANCE_SYMBOLS["NASDAQ"]: ["NDX"],
@@ -127,19 +125,21 @@ class QuoteSnapshot:
 
 
 async def build_crypto_snapshot(as_of: datetime) -> MarketGroupSnapshot:
-    btc_quote = await _safe_fetch_quote(YFINANCE_SYMBOLS["BTC"])
+    sem = asyncio.Semaphore(FETCH_CONCURRENT_LIMIT)
+    btc_quote = await _safe_fetch_quote(YFINANCE_SYMBOLS["BTC"], sem)
     items = [_metric_from_quote("BTC", YFINANCE_SYMBOLS["BTC"], btc_quote, _format_number)]
     return _build_group_snapshot(group="crypto", as_of=as_of, items=items)
 
 
 async def build_extended_snapshot(as_of: datetime) -> MarketGroupSnapshot:
+    sem = asyncio.Semaphore(FETCH_CONCURRENT_LIMIT)
     quotes = await asyncio.gather(
-        _safe_fetch_quote(YFINANCE_SYMBOLS["VIX"]),
-        _safe_fetch_quote(YFINANCE_SYMBOLS["US10Y"]),
-        _safe_fetch_quote(YFINANCE_SYMBOLS["DXY"]),
-        _safe_fetch_quote(US2Y_SYMBOL),
-        _safe_fetch_quote(YFINANCE_SYMBOLS["GOLD"]),
-        _safe_fetch_quote(YFINANCE_SYMBOLS["WTI"]),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["VIX"], sem),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["US10Y"], sem),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["DXY"], sem),
+        _safe_fetch_quote(US2Y_SYMBOL, sem),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["GOLD"], sem),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["WTI"], sem),
     )
     vix_q, us10y_q, dxy_q, us2y_q, gold_q, wti_q = quotes
     items = [
@@ -154,9 +154,10 @@ async def build_extended_snapshot(as_of: datetime) -> MarketGroupSnapshot:
 
 
 async def build_equity_snapshot(as_of: datetime) -> MarketGroupSnapshot:
+    sem = asyncio.Semaphore(FETCH_CONCURRENT_LIMIT)
     quotes = await asyncio.gather(
-        _safe_fetch_quote(YFINANCE_SYMBOLS["SPX"]),
-        _safe_fetch_quote(YFINANCE_SYMBOLS["NASDAQ"]),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["SPX"], sem),
+        _safe_fetch_quote(YFINANCE_SYMBOLS["NASDAQ"], sem),
     )
     spx_q, nasdaq_q = quotes
     items = [
@@ -380,8 +381,8 @@ def _build_metric(
     )
 
 
-async def _safe_fetch_quote(symbol: str) -> QuoteSnapshot | None:
-    async with _FETCH_SEMAPHORE:
+async def _safe_fetch_quote(symbol: str, semaphore: asyncio.Semaphore) -> QuoteSnapshot | None:
+    async with semaphore:
         for attempt in range(FETCH_RETRY_ATTEMPTS):
             try:
                 result = await asyncio.wait_for(
