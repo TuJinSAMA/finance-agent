@@ -1,0 +1,19 @@
+[Unit]
+Description=Finance Agent Scheduler
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/finance-agent/apps/api
+Environment=ENV=prod
+ExecStart=/opt/finance-agent/apps/api/.venv/bin/python -m src.run_scheduler
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=finance-agent-scheduler
+
+[Install]
+WantedBy=multi-user.target

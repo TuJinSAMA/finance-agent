@@ -29,7 +29,16 @@ deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart finance-agent-api
 deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop finance-agent-api
 deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start finance-agent-api
 deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status finance-agent-api
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart finance-agent-scheduler
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop finance-agent-scheduler
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start finance-agent-scheduler
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status finance-agent-scheduler
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl is-active finance-agent-scheduler
 deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl daemon-reload
+deploy ALL=(ALL) NOPASSWD: /usr/bin/install -m 644 /opt/finance-agent/apps/api/deploy/finance-agent-api.service /etc/systemd/system/finance-agent-api.service
+deploy ALL=(ALL) NOPASSWD: /usr/bin/install -m 644 /opt/finance-agent/apps/api/deploy/finance-agent-scheduler.service /etc/systemd/system/finance-agent-scheduler.service
+deploy ALL=(ALL) NOPASSWD: /usr/bin/journalctl -u finance-agent-api --no-pager -n *
+deploy ALL=(ALL) NOPASSWD: /usr/bin/journalctl -u finance-agent-scheduler --no-pager -n *
 SUDOERS
 chmod 440 /etc/sudoers.d/finance-agent
 
@@ -79,9 +88,11 @@ else
 fi
 
 echo "========== 8. 配置 Systemd 服务 =========="
-cp "${API_DIR}/deploy/finance-agent-api.service" /etc/systemd/system/
+install -m 644 "${API_DIR}/deploy/finance-agent-api.service" /etc/systemd/system/finance-agent-api.service
+install -m 644 "${API_DIR}/deploy/finance-agent-scheduler.service" /etc/systemd/system/finance-agent-scheduler.service
 systemctl daemon-reload
 systemctl enable finance-agent-api
+systemctl enable finance-agent-scheduler
 
 echo "========== 9. 配置 Caddy =========="
 cp "${API_DIR}/deploy/Caddyfile" /etc/caddy/Caddyfile
@@ -92,6 +103,7 @@ echo "========== 10. 运行数据库迁移并启动服务 =========="
 cd "${API_DIR}"
 sudo -u ${DEPLOY_USER} ENV=prod /usr/local/bin/uv run alembic upgrade head
 systemctl start finance-agent-api
+systemctl start finance-agent-scheduler
 
 echo ""
 echo "=========================================="
@@ -99,4 +111,6 @@ echo "  初始化完成！"
 echo "=========================================="
 echo ""
 echo "查看服务状态: systemctl status finance-agent-api"
+echo "查看定时任务状态: systemctl status finance-agent-scheduler"
 echo "查看服务日志: journalctl -u finance-agent-api -f"
+echo "查看定时任务日志: journalctl -u finance-agent-scheduler -f"

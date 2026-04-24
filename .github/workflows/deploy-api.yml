@@ -46,19 +46,39 @@ jobs:
             echo "==> Running migrations..."
             ENV=prod uv run alembic upgrade head
 
-            echo "==> Restarting service..."
-            sudo systemctl restart finance-agent-api
+            echo "==> Syncing systemd units..."
+            if ! sudo -n install -m 644 /opt/finance-agent/apps/api/deploy/finance-agent-api.service /etc/systemd/system/finance-agent-api.service; then
+              echo "::error::Deploy user cannot sync systemd units. SSH as root once and run: bash /opt/finance-agent/apps/api/deploy/setup.sh"
+              exit 1
+            fi
+            sudo -n install -m 644 /opt/finance-agent/apps/api/deploy/finance-agent-scheduler.service /etc/systemd/system/finance-agent-scheduler.service
+            sudo -n systemctl daemon-reload
 
-            echo "==> Health check..."
+            echo "==> Restarting services..."
+            sudo -n systemctl restart finance-agent-api
+            sudo -n systemctl restart finance-agent-scheduler
+
+            echo "==> API health check..."
             for i in 1 2 3 4 5 6; do
               sleep 5
               if curl -sf http://127.0.0.1:8000/health; then
                 echo ""
-                echo "Deploy succeeded!"
-                exit 0
+                break
               fi
               echo "Attempt $i failed, retrying..."
+              if [ "$i" = "6" ]; then
+                echo "::error::API health check failed after 30s!"
+                sudo -n journalctl -u finance-agent-api --no-pager -n 30
+                exit 1
+              fi
             done
-            echo "::error::Health check failed after 30s!"
-            sudo journalctl -u finance-agent-api --no-pager -n 30
-            exit 1
+
+            echo "==> Scheduler health check..."
+            if [ "$(sudo -n systemctl is-active finance-agent-scheduler)" != "active" ]; then
+              echo "::error::Scheduler service is not active!"
+              sudo -n systemctl status finance-agent-scheduler
+              sudo -n journalctl -u finance-agent-scheduler --no-pager -n 30
+              exit 1
+            fi
+
+            echo "Deploy succeeded!"

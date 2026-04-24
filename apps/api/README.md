@@ -14,6 +14,9 @@ cp .env.example .env
 
 # 启动开发服务器
 pnpm dev
+
+# 另开一个终端启动定时任务
+pnpm scheduler
 ```
 
 ## 数据库迁移
@@ -37,6 +40,7 @@ pnpm --filter api db:rollback
 
 ```
 客户端 --HTTPS:443--> Caddy（自动 SSL）--127.0.0.1:8000--> Uvicorn（FastAPI）--localhost:5432--> PostgreSQL
+Systemd --> 独立 Scheduler 进程（python -m src.run_scheduler）--> PostgreSQL/Redis
 ```
 
 - **服务器**：阿里云轻量（2G/2vCPU），Alibaba Cloud Linux 3
@@ -55,7 +59,9 @@ SSH 登录服务器，以 root 执行：
 sudo bash /opt/finance-agent/apps/api/deploy/setup.sh
 ```
 
-脚本会自动完成：创建 deploy 用户、安装 uv/Caddy、配置 Systemd 服务、启动应用。
+脚本会自动完成：创建 deploy 用户、安装 uv/Caddy、配置 Systemd 服务、启动 API 和定时任务。
+
+已有服务器从单 API 进程升级到独立 scheduler 进程时，也需要以 root 重新执行一次该脚本，用于安装 `finance-agent-scheduler` unit 并更新 deploy 用户的免密 sudo 权限。
 
 ### 2. 配置数据库密码
 
@@ -95,19 +101,23 @@ push 到 `main` 分支且 `apps/api/` 下有文件变更时，GitHub Actions 自
 3. `uv sync`（安装/更新依赖）
 4. `alembic upgrade head`（执行数据库迁移）
 5. `systemctl restart finance-agent-api`
-6. 健康检查 `/health`
+6. `systemctl restart finance-agent-scheduler`
+7. 健康检查 API `/health` 和 scheduler systemd 状态
 
 ## 服务器运维
 
 ```bash
 # 查看服务状态
 systemctl status finance-agent-api
+systemctl status finance-agent-scheduler
 
 # 查看实时日志
 journalctl -u finance-agent-api -f
+journalctl -u finance-agent-scheduler -f
 
 # 手动重启
 sudo systemctl restart finance-agent-api
+sudo systemctl restart finance-agent-scheduler
 
 # 查看 Caddy 状态
 systemctl status caddy
