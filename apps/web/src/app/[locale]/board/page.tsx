@@ -1,16 +1,15 @@
 "use client";
 
-import { AlertCircle, ArrowRight, Loader2, LogIn } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useApi } from "@/hooks/useApi";
 import type { MarketGroupSnapshotResponse, MarketMetric } from "@/types/api";
 import GeoNewsSection from "@/components/geo-news/GeoNewsSection";
-import { Link } from "../../../../navigation";
 
 type BoardCopy = {
   eyebrow: string;
   title: string;
-  summary: string;
+  combinedTitle: string;
   asOf: string;
   lastSuccess: string;
   source: string;
@@ -24,16 +23,12 @@ type BoardCopy = {
   groupStatus: Record<MarketGroupSnapshotResponse["status"], string>;
   unavailable: string;
   noChange: string;
-  loginEyebrow: string;
-  loginTitle: string;
-  loginBody: string;
-  loginCta: string;
 };
 
 const EN_COPY: BoardCopy = {
   eyebrow: "Public market board",
   title: "Macro and asset snapshots",
-  summary: "A quick read on broad market inputs from the public data feed.",
+  combinedTitle: "Macro & assets",
   asOf: "As of",
   lastSuccess: "Last successful refresh",
   source: "Source",
@@ -57,17 +52,12 @@ const EN_COPY: BoardCopy = {
   },
   unavailable: "Unavailable",
   noChange: "No daily change",
-  loginEyebrow: "Personalization",
-  loginTitle: "Want recommendations tailored to your portfolio?",
-  loginBody:
-    "This board stays public. Sign in to continue into the recommendations workspace and personalized context.",
-  loginCta: "Go to recommendations",
 };
 
 const ZH_COPY: BoardCopy = {
   eyebrow: "公开市场看板",
   title: "宏观与资产快照",
-  summary: "来自公开数据源的宏观与跨资产市场快照。",
+  combinedTitle: "宏观与资产",
   asOf: "更新时间",
   lastSuccess: "最近成功刷新",
   source: "数据源",
@@ -91,11 +81,6 @@ const ZH_COPY: BoardCopy = {
   },
   unavailable: "暂无数据",
   noChange: "暂无日内变化",
-  loginEyebrow: "个性化",
-  loginTitle: "想看更贴合你组合的推荐？",
-  loginBody:
-    "这个市场看板对所有人开放。登录后可进入推荐工作台，查看个性化建议与组合上下文。",
-  loginCta: "前往推荐页",
 };
 
 function getCopy(locale: string): BoardCopy {
@@ -232,28 +217,32 @@ function MetricCard({
 
   return (
     <article
-      className={`rounded-xl border p-4 transition-colors ${
+      className={`rounded-lg border px-3 py-3 transition-colors ${
         metric.status === "unavailable"
           ? "border-divider bg-cream/60"
           : "border-divider bg-white"
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-warm-gray">
+          <p className="truncate text-[11px] font-medium uppercase tracking-[0.14em] text-warm-gray">
             {metric.name}
           </p>
-          <p className="mt-1 text-[11px] font-mono text-warm-gray/80">{metric.symbol}</p>
+          <p className="mt-0.5 truncate text-[10px] font-mono text-warm-gray/80">
+            {metric.symbol}
+          </p>
         </div>
-        <span
-          className={`shrink-0 rounded-full border px-2 py-1 text-[11px] font-medium ${getStatusTone(metric.status)}`}
-        >
-          {copy.status[metric.status]}
-        </span>
+        {metric.status !== "ok" && (
+          <span
+            className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${getStatusTone(metric.status)}`}
+          >
+            {copy.status[metric.status]}
+          </span>
+        )}
       </div>
 
       <p
-        className={`mt-4 text-2xl font-semibold tracking-tight tabular-nums ${
+        className={`mt-3 text-xl font-semibold tracking-tight tabular-nums ${
           metric.status === "unavailable" ? "text-warm-gray" : "text-ink"
         }`}
       >
@@ -261,19 +250,19 @@ function MetricCard({
       </p>
 
       {metric.change_pct !== null ? (
-        <p className={`mt-2 text-sm font-medium tabular-nums ${getChangeTone(metric.change_pct)}`}>
+        <p className={`mt-1 text-xs font-medium tabular-nums ${getChangeTone(metric.change_pct)}`}>
           {formatMetricChange(metric.change_pct)}
         </p>
       ) : metric.status === "unavailable" ? (
-        <p className="mt-2 text-sm text-warm-gray">{copy.unavailable}</p>
+        <p className="mt-1 text-xs text-warm-gray">{copy.unavailable}</p>
       ) : (
-        <p className="mt-2 text-sm text-warm-gray">{copy.noChange}</p>
+        <p className="mt-1 text-xs text-warm-gray">{copy.noChange}</p>
       )}
     </article>
   );
 }
 
-function MetricSection({
+function MetricGroup({
   snapshot,
   copy,
   locale,
@@ -283,29 +272,31 @@ function MetricSection({
   locale: string;
 }>): React.JSX.Element {
   return (
-    <section className="rounded-2xl border border-divider bg-white p-5 shadow-sm md:p-6">
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <div>
+      <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-serif font-medium text-ink">
+          <h3 className="text-base font-serif font-medium text-ink">
             {copy.sections[snapshot.group]}
-          </h2>
+          </h3>
           <p className="mt-1 text-xs text-warm-gray">
             {copy.asOf} {formatAsOf(locale, snapshot.as_of)}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-[0.16em] text-warm-gray">
             {snapshot.items.length}
           </span>
-          <span
-            className={`shrink-0 rounded-full border px-2 py-1 text-[11px] font-medium ${getGroupStatusTone(snapshot.status)}`}
-          >
-            {copy.groupStatus[snapshot.status]}
-          </span>
+          {snapshot.status !== "ok" && (
+            <span
+              className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${getGroupStatusTone(snapshot.status)}`}
+            >
+              {copy.groupStatus[snapshot.status]}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(136px,1fr))] gap-2">
         {snapshot.items.map((metric) => (
           <MetricCard
             key={`${snapshot.group}-${metric.symbol}`}
@@ -314,7 +305,7 @@ function MetricSection({
           />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -341,22 +332,22 @@ function SectionUnavailableState({
   retryLabel: string;
 }>): React.JSX.Element {
   return (
-    <section className="rounded-2xl border border-divider bg-white p-5 shadow-sm md:p-6">
-      <div className="flex min-h-56 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-divider bg-cream/40 px-6 text-center">
-        <AlertCircle className="h-8 w-8 text-accent-red" />
-        <div className="space-y-2">
-          <h2 className="text-lg font-serif font-medium text-ink">{title}</h2>
-          <p className="text-sm text-warm-gray">{message}</p>
+    <div className="rounded-xl border border-dashed border-divider bg-cream/40 px-4 py-6 text-center">
+      <div className="flex flex-col items-center justify-center gap-3">
+        <AlertCircle className="h-6 w-6 text-accent-red" />
+        <div className="space-y-1">
+          <h3 className="text-base font-serif font-medium text-ink">{title}</h3>
+          <p className="text-xs text-warm-gray">{message}</p>
         </div>
         <button
           type="button"
           onClick={onRetry}
-          className="inline-flex items-center gap-2 rounded-xl bg-terracotta px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg"
+          className="inline-flex items-center gap-2 rounded-lg bg-terracotta px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-terracotta-dark"
         >
           {retryLabel}
         </button>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -368,13 +359,76 @@ function SectionLoadingState({
   message: string;
 }>): React.JSX.Element {
   return (
-    <section className="rounded-2xl border border-divider bg-white p-5 shadow-sm md:p-6">
-      <div className="flex min-h-56 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-divider bg-cream/40 px-6 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-terracotta" />
-        <div className="space-y-2">
-          <h2 className="text-lg font-serif font-medium text-ink">{title}</h2>
-          <p className="text-sm text-warm-gray">{message}</p>
+    <div className="rounded-xl border border-dashed border-divider bg-cream/40 px-4 py-6 text-center">
+      <div className="flex flex-col items-center justify-center gap-3">
+        <Loader2 className="h-6 w-6 animate-spin text-terracotta" />
+        <div className="space-y-1">
+          <h3 className="text-base font-serif font-medium text-ink">{title}</h3>
+          <p className="text-xs text-warm-gray">{message}</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function CombinedMetricSection({
+  snapshots,
+  macroLoading,
+  assetsLoading,
+  onRetryMacro,
+  onRetryAssets,
+  copy,
+  locale,
+  loadingLabel,
+  unavailableLabel,
+  retryLabel,
+}: Readonly<{
+  snapshots: {
+    macro: MarketGroupSnapshotResponse | null;
+    assets: MarketGroupSnapshotResponse | null;
+  };
+  macroLoading: boolean;
+  assetsLoading: boolean;
+  onRetryMacro: () => void;
+  onRetryAssets: () => void;
+  copy: BoardCopy;
+  locale: string;
+  loadingLabel: string;
+  unavailableLabel: string;
+  retryLabel: string;
+}>): React.JSX.Element {
+  return (
+    <section className="rounded-2xl border border-divider bg-white p-4 shadow-sm md:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-serif font-medium text-ink">{copy.combinedTitle}</h2>
+      </div>
+
+      <div className="space-y-5">
+        {snapshots.macro ? (
+          <MetricGroup snapshot={snapshots.macro} copy={copy} locale={locale} />
+        ) : macroLoading ? (
+          <SectionLoadingState title={copy.sections.macro} message={loadingLabel} />
+        ) : (
+          <SectionUnavailableState
+            title={copy.sections.macro}
+            message={unavailableLabel}
+            onRetry={onRetryMacro}
+            retryLabel={retryLabel}
+          />
+        )}
+
+        {snapshots.assets ? (
+          <MetricGroup snapshot={snapshots.assets} copy={copy} locale={locale} />
+        ) : assetsLoading ? (
+          <SectionLoadingState title={copy.sections.assets} message={loadingLabel} />
+        ) : (
+          <SectionUnavailableState
+            title={copy.sections.assets}
+            message={unavailableLabel}
+            onRetry={onRetryAssets}
+            retryLabel={retryLabel}
+          />
+        )}
       </div>
     </section>
   );
@@ -405,107 +459,62 @@ export default function BoardPage(): React.JSX.Element {
   const availabilitySummary = getAvailabilitySummary(snapshots, copy);
 
   return (
-    <main className="min-h-screen bg-cream px-4 py-8 md:px-8 md:py-10">
-      <div className="mx-auto max-w-6xl space-y-5">
+    <main className="min-h-screen bg-cream px-4 py-4 md:px-8 md:py-6">
+      <div className="mx-auto max-w-6xl space-y-4">
         {loading ? (
           <LoadingState message={boardT("loading")} />
         ) : (
           <>
-            <header className="rounded-2xl border border-divider bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                <div className="max-w-3xl">
+            <header className="rounded-2xl border border-divider bg-white px-4 py-3 shadow-sm md:px-5">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-[0.24em] text-warm-gray">
                     {copy.eyebrow}
                   </p>
-                  <h1 className="mt-1 text-3xl font-serif font-medium tracking-tight text-ink md:text-4xl">
+                  <h1 className="mt-1 text-2xl font-serif font-medium tracking-tight text-ink md:text-3xl">
                     {copy.title}
                   </h1>
-                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-charcoal/80 md:text-base">
-                    {copy.summary}
-                  </p>
-                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-charcoal/70">
-                    {availabilitySummary}
-                  </p>
-                  <p className="mt-3 text-sm text-warm-gray">
-                    {latestAsOf ? formatAsOf(locale, latestAsOf) : boardT("unavailable")}
-                  </p>
                 </div>
 
-                <div className="rounded-xl border border-divider bg-cream/60 p-4 lg:min-w-72">
-                  <p className="text-xs uppercase tracking-[0.16em] text-warm-gray">
-                    {copy.asOf}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-charcoal">
-                    {latestAsOf ? formatAsOf(locale, latestAsOf) : boardT("unavailable")}
-                  </p>
-                  <p className="mt-4 text-xs uppercase tracking-[0.16em] text-warm-gray">
-                    {copy.lastSuccess}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-charcoal">
-                    {latestLastSuccess
-                      ? formatAsOf(locale, latestLastSuccess)
-                      : boardT("unavailable")}
-                  </p>
-                  <p className="mt-4 text-xs uppercase tracking-[0.16em] text-warm-gray">
-                    {copy.source}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-charcoal">
-                    {combinedSource || boardT("unavailable")}
-                  </p>
+                <div className="grid gap-2 text-sm text-charcoal sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-center lg:justify-end">
+                  <span>
+                    <span className="text-warm-gray">{copy.asOf}: </span>
+                    <span className="font-medium">
+                      {latestAsOf ? formatAsOf(locale, latestAsOf) : boardT("unavailable")}
+                    </span>
+                  </span>
+                  <span>
+                    <span className="text-warm-gray">{copy.lastSuccess}: </span>
+                    <span className="font-medium">
+                      {latestLastSuccess
+                        ? formatAsOf(locale, latestLastSuccess)
+                        : boardT("unavailable")}
+                    </span>
+                  </span>
+                  <span>
+                    <span className="text-warm-gray">{copy.source}: </span>
+                    <span className="font-medium">{combinedSource || boardT("unavailable")}</span>
+                  </span>
+                  {availabilitySummary && (
+                    <span className="text-charcoal/75">{availabilitySummary}</span>
+                  )}
                 </div>
               </div>
             </header>
 
-            {snapshots.macro ? (
-              <MetricSection snapshot={snapshots.macro} copy={copy} locale={locale} />
-            ) : macroSnapshot.loading ? (
-              <SectionLoadingState title={copy.sections.macro} message={boardT("loading")} />
-            ) : (
-              <SectionUnavailableState
-                title={copy.sections.macro}
-                message={boardT("sectionUnavailable")}
-                onRetry={macroSnapshot.refetch}
-                retryLabel={boardT("retry")}
-              />
-            )}
+            <CombinedMetricSection
+              snapshots={snapshots}
+              macroLoading={macroSnapshot.loading}
+              assetsLoading={assetsSnapshot.loading}
+              onRetryMacro={macroSnapshot.refetch}
+              onRetryAssets={assetsSnapshot.refetch}
+              copy={copy}
+              locale={locale}
+              loadingLabel={boardT("loading")}
+              unavailableLabel={boardT("sectionUnavailable")}
+              retryLabel={boardT("retry")}
+            />
             <GeoNewsSection />
-            {snapshots.assets ? (
-              <MetricSection snapshot={snapshots.assets} copy={copy} locale={locale} />
-            ) : assetsSnapshot.loading ? (
-              <SectionLoadingState title={copy.sections.assets} message={boardT("loading")} />
-            ) : (
-              <SectionUnavailableState
-                title={copy.sections.assets}
-                message={boardT("sectionUnavailable")}
-                onRetry={assetsSnapshot.refetch}
-                retryLabel={boardT("retry")}
-              />
-            )}
-
-            <section className="rounded-2xl border border-divider bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                <div className="max-w-2xl">
-                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-warm-gray">
-                    {copy.loginEyebrow}
-                  </p>
-                  <h2 className="mt-2 text-2xl font-serif font-medium text-ink">
-                    {copy.loginTitle}
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-charcoal/80">
-                    {copy.loginBody}
-                  </p>
-                </div>
-
-                <Link
-                  href="/recommendations"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-5 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-terracotta-dark hover:shadow-lg"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>{copy.loginCta}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </section>
           </>
         )}
       </div>

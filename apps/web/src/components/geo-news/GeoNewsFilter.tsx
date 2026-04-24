@@ -14,14 +14,14 @@ export default function GeoNewsFilter({
   highLabel: string;
 }>): React.JSX.Element {
   return (
-    <div className="flex gap-2">
+    <div className="inline-flex rounded-lg border border-divider bg-cream p-1">
       <button
         type="button"
         onClick={() => onChange("all")}
-        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+        className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
           level === "all"
-            ? "bg-ink text-warm-silver"
-            : "bg-warm-sand text-charcoal-warm hover:bg-warm-sand/80"
+            ? "bg-ink text-white shadow-sm"
+            : "text-charcoal/70 hover:bg-white hover:text-charcoal"
         }`}
       >
         {allLabel}
@@ -29,10 +29,10 @@ export default function GeoNewsFilter({
       <button
         type="button"
         onClick={() => onChange("high")}
-        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+        className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
           level === "high"
-            ? "bg-terracotta text-white"
-            : "bg-warm-sand text-charcoal-warm hover:bg-warm-sand/80"
+            ? "bg-terracotta text-white shadow-sm"
+            : "text-charcoal/70 hover:bg-white hover:text-charcoal"
         }`}
       >
         {highLabel}

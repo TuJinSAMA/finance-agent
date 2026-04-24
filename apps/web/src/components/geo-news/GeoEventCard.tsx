@@ -55,7 +55,7 @@ function ImpactBadge({ level }: { level: ImpactLevel }): React.JSX.Element {
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-warm-sand px-2 py-0.5 text-[11px] font-medium text-charcoal-warm">
+    <span className="inline-flex items-center rounded-full bg-cream-light px-2 py-0.5 text-[11px] font-medium text-charcoal/80">
       Medium Impact
     </span>
   );
@@ -78,7 +78,7 @@ export default function GeoEventCard({
         isHighImpact
           ? "border-l-[3px] border-l-terracotta border-t-0 border-r-0 border-b-0 border-divider"
           : "border-l-[2px] border-l-stone-gray border-t-0 border-r-0 border-b-0 border-divider"
-      } ${isHighImpact ? "p-5" : "p-4"}`}
+      } ${isHighImpact ? "p-4" : "p-3"}`}
     >
       <button
         type="button"
@@ -96,10 +96,10 @@ export default function GeoEventCard({
               )}
             </div>
             <h3
-              className={`mt-2 leading-snug text-ink ${
+              className={`mt-1.5 leading-snug text-ink ${
                 isHighImpact
-                  ? "font-serif text-lg font-medium"
-                  : "text-base font-medium"
+                  ? "font-serif text-base font-medium"
+                  : "text-sm font-medium"
               }`}
             >
               {event.title}
@@ -125,7 +125,7 @@ export default function GeoEventCard({
               {cats.map((cat) => (
                 <span
                   key={cat}
-                  className="rounded-full bg-warm-sand px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-charcoal-warm"
+                  className="rounded-full bg-cream-light px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-charcoal/70"
                 >
                   {CATEGORY_LABELS[cat] || cat}
                 </span>
